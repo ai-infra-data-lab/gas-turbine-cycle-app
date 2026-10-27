@@ -1,0 +1,139 @@
+{
+  "format": "gas-turbine-cycle-case",
+  "schema_version": 1,
+  "module_id": "gt.cycle.simple_single_shaft",
+  "module_version": "0.1.0",
+  "run_id": "e45cc1bc-49f4-48d6-9303-ff491806061a",
+  "started_at": "2026-10-26T23:17:29.217+00:00",
+  "completed_at": "2026-10-26T23:17:29.217+00:00",
+  "input_hash": "41bfe8d9fccb98dc573d1f6cb1ad97ed18b005b89cdb27aa6627a315de80829b",
+  "input": {
+    "schema_version": 1,
+    "mode": "target_power",
+    "name": "目標100kW・正味発電",
+    "parameters": {
+      "ambient_temperature_k": 288.15,
+      "ambient_pressure_pa": 101325.0,
+      "air_mass_flow_kg_s": 1.2,
+      "target_net_power_w": 100000.0,
+      "shaft_speed_rpm": 60000.0,
+      "compressor_pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1123.0,
+      "compressor_efficiency": 0.78,
+      "turbine_efficiency": 0.85,
+      "combustion_efficiency": 0.99,
+      "mechanical_efficiency": 0.98,
+      "generator_efficiency": 0.95,
+      "inlet_pressure_loss": 0.01,
+      "combustor_pressure_loss": 0.04,
+      "exhaust_pressure_loss": 0.02,
+      "fuel_lhv_j_kg": 50000000.0,
+      "auxiliary_power_w": 2000.0,
+      "cp_air_j_kg_k": 1005.0,
+      "cp_gas_j_kg_k": 1150.0,
+      "r_air_j_kg_k": 287.05,
+      "r_gas_j_kg_k": 287.05
+    },
+    "context": {
+      "project_id": null,
+      "component_id": null,
+      "source_revision": null
+    }
+  },
+  "result": {
+    "schema_version": 1,
+    "module_id": "gt.cycle.simple_single_shaft",
+    "module_version": "0.1.0",
+    "status": "success",
+    "model": "constant_cp_ideal_gas_fuel_mass",
+    "enthalpy_reference_temperature_k": 298.15,
+    "metrics": {
+      "air_mass_flow_kg_s": 0.8697923031992867,
+      "fuel_mass_flow_kg_s": 0.014086205489256315,
+      "gas_mass_flow_kg_s": 0.8838785086885431,
+      "fuel_air_ratio": 0.01619490703406338,
+      "compressor_power_w": 149901.50700447158,
+      "turbine_gas_power_w": 262520.3347521461,
+      "turbine_shaft_power_w": 257269.92805710316,
+      "net_shaft_power_w": 107368.42105263157,
+      "gross_electric_power_w": 101999.99999999999,
+      "net_electric_power_w": 99999.99999999999,
+      "fuel_heat_input_w": 704310.2744628157,
+      "shaft_efficiency_lhv": 0.1524447746194282,
+      "electric_efficiency_lhv": 0.14198287832201648,
+      "heat_rate_kj_kwh": 25355.16988066137,
+      "specific_fuel_consumption_kg_kwh": 0.5071033976132274,
+      "exhaust_temperature_k": 864.7308490766488,
+      "turbine_expansion_ratio": 3.5392895999999996,
+      "back_work_ratio": 0.5826623738597219,
+      "gamma_air": 1.3998189288947698,
+      "gamma_gas": 1.3326380439191146,
+      "compressor_isentropic_exit_temperature_k": 421.9077576795564,
+      "turbine_isentropic_exit_temperature_k": 819.1539400901751
+    },
+    "stations": [
+      {
+        "id": "0",
+        "name": "大気",
+        "total_temperature_k": 288.15,
+        "total_pressure_pa": 101325.0,
+        "mass_flow_kg_s": 0.8697923031992867,
+        "fluid": "air"
+      },
+      {
+        "id": "1",
+        "name": "圧縮機入口",
+        "total_temperature_k": 288.15,
+        "total_pressure_pa": 100311.75,
+        "mass_flow_kg_s": 0.8697923031992867,
+        "fluid": "air"
+      },
+      {
+        "id": "2",
+        "name": "圧縮機出口",
+        "total_temperature_k": 459.63430471738,
+        "total_pressure_pa": 381184.64999999997,
+        "mass_flow_kg_s": 0.8697923031992867,
+        "fluid": "air"
+      },
+      {
+        "id": "3",
+        "name": "タービン入口",
+        "total_temperature_k": 1123.0,
+        "total_pressure_pa": 365937.26399999997,
+        "mass_flow_kg_s": 0.8838785086885431,
+        "fluid": "gas"
+      },
+      {
+        "id": "4",
+        "name": "タービン出口",
+        "total_temperature_k": 864.7308490766488,
+        "total_pressure_pa": 103392.85714285714,
+        "mass_flow_kg_s": 0.8838785086885431,
+        "fluid": "gas"
+      },
+      {
+        "id": "5",
+        "name": "排気境界",
+        "total_temperature_k": 864.7308490766488,
+        "total_pressure_pa": 101325.0,
+        "mass_flow_kg_s": 0.8838785086885431,
+        "fluid": "gas"
+      }
+    ],
+    "energy_balance": {
+      "combustion_loss_w": 7043.102744628163,
+      "mechanical_loss_w": 5250.406695042927,
+      "generator_loss_w": 5368.421052631584,
+      "auxiliary_power_w": 2000.0,
+      "exhaust_net_sensible_energy_w": 584648.3439705132,
+      "shaft_balance_residual_w": -1.1641532182693481e-10,
+      "electric_balance_residual_w": -1.1641532182693481e-10,
+      "mass_balance_residual_kg_s": 1.1622647289044608e-16
+    },
+    "warnings": [
+      "比熱一定の概略設計点モデルです。温度依存物性・燃料組成・解離・冷却抽気・性能マップは含みません。",
+      "回転数は記録用です。回転数の変更による性能変化や軸系マッチングは計算しません。"
+    ]
+  }
+}
