@@ -1,6 +1,6 @@
 # 独立計算モジュールの入出力契約
 
-Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.1.0` / schema_version: `1`。
+Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.2.0` / schema_version: `2`。
 
 ## 呼出し
 
@@ -18,7 +18,11 @@ case = run_case(inputs)
 
 すべてのparametersは有限の数値。パラメータ名に単位を含め、Pa・K・kg/s・W・J/kg・J/(kg K)を使用。効率・損失率は0〜1の小数。画面だけでkPa・kW・MJ/kg・%へ変換します。圧力比・燃空比は無次元。全圧は絶対圧、温度は全温（静止大気・低速排気境界を除く）。`shaft_speed_rpm` は記録用、計算結果に影響しません。
 
-入力は `schema_version, name, mode, parameters, context`。modeは `airflow` または `target_power`。入力の欠落・未知のパラメータ・文字列数値・bool・NaN/Inf・範囲外を拒否します。非アクティブ側の流量/目標出力も再利用用入力として保存・検証しますが計算には使用しません。
+入力は `schema_version, name, mode, parameters, context, thermodynamics`。
+
+`thermodynamics = {model: "nasa9_frozen"|"constant_cp", fuel: "methane"|"gasturb_generic"|"gasturb_natural_gas"|"custom_ch", fuel_hydrogen_mass_fraction: 0..1}`。水素質量割合はcustom_ch時のみ使用し、残りは炭素です。燃料LHVはparametersの独立入力です。NASAモデルではlegacyのcp/R入力を計算に使用しませんが、交換用に維持・検証します。旧schema 1入力はconstant_cpへ正規化するため、従来の意味を維持します。旧module 0.1.0の交換ケースも入力を取り出して再計算できます。既定`default_input()`はNASA、`default_input("constant_cp")`は旧モデルです。
+
+modeは `airflow` または `target_power`。入力の欠落・未知のパラメータ・文字列数値・bool・NaN/Inf・範囲外を拒否します。非アクティブ側の流量/目標出力も再利用用入力として保存・検証しますが計算には使用しません。
 
 `context = {project_id: UUID|null, component_id: UUID|null, source_revision: int|null}`。案件IDがあるときだけ部品IDや元版を指定できます。部品IDは案件内で識別します。単独利用はすべてnull。現段階で管理DBのIDの存在照会はしません。
 
@@ -29,7 +33,9 @@ case = run_case(inputs)
 - `input_hash` は正規化・ソートした完全な入力（context・ケース名・非アクティブ項目も含む）のSHA-256。浮動小数点の入力はfloatへ正規化する。
 - `result.status`: `success` または `non_generating`。入力の不成立は `InputError` を送出（HTTPでは400）。
 - `metrics`: SIベースで単位を含む項目名。`heat_rate_kj_kwh`, `specific_fuel_consumption_kg_kwh` の単位は名称のとおり。未定義はnull。
-- `stations`: 0〜5の位置IDと名前、全温K、全圧Pa、質量流量kg/s、air/gas。位置番号は本モジュール固有。
+- `stations`: 0〜5の位置IDと名前、全温K、全圧Pa、質量流量kg/s、air/gas。さらにcp、cv、gamma、R、分子量、顕熱h、エントロピー温度関数。単位はキーの接尾辞で明示。位置番号は本モジュール固有。エントロピー温度関数は圧力項と混合定数を含まないため、異なる組成間の絶対エントロピー比較には使わない。
+- `thermodynamics`: 実際のモデル・燃料、燃料C/H、空気/生成ガスの質量分率、当量比、NASAデータのコミット・元ファイルSHA-256・温度範囲等。constant_cpでは組成データを持たない。
+- 再現性の照合にはinput_hashに加えてmodule_versionとresult.thermodynamics.dataset.source_file_sha256を保持する。入力ハッシュ単独では係数・計算コードの版を識別しない。
 - `energy_balance`: 各損失・排気正味顕熱・電気補機と、質量/軸/電気エネルギー収支残差。
 - `warnings`: 物性モデル等の限界と計算条件の注意点。
 

@@ -5,8 +5,8 @@ import math
 import uuid
 
 MODULE_ID = "gt.cycle.simple_single_shaft"
-MODULE_VERSION = "0.1.0"
-SCHEMA_VERSION = 1
+MODULE_VERSION = "0.2.0"
+SCHEMA_VERSION = 2
 
 # All limits are software applicability bounds, not equipment operating limits.
 # key, label, UI unit, UI multiplier, SI minimum, SI maximum, SI default, group
@@ -39,16 +39,30 @@ class InputError(ValueError):
     pass
 
 
-def default_input():
-    return {"schema_version": 1, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
+def default_input(thermo_model="nasa9_frozen"):
+    return {"schema_version": 2, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
+            "thermodynamics": {"model": thermo_model, "fuel": "methane", "fuel_hydrogen_mass_fraction": .25},
             "context": {"project_id": None, "component_id": None, "source_revision": None}}
 
 
 def validate_input(raw):
-    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") != 1:
-        raise InputError("入力のschema_versionは1を指定してください。")
-    if set(raw) - {"schema_version", "mode", "name", "parameters", "context"}:
+    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") not in (1, 2):
+        raise InputError("入力のschema_versionは1または2を指定してください。")
+    if set(raw) - {"schema_version", "mode", "name", "parameters", "context", "thermodynamics"}:
         raise InputError("未対応の入力フィールドがあります。")
+    settings = raw.get("thermodynamics")
+    if raw["schema_version"] == 1:
+        if settings is not None:
+            raise InputError("旧版入力に物性モデルを追加する場合はschema_version=2へ変更してください。")
+        settings = {"model": "constant_cp", "fuel": "methane", "fuel_hydrogen_mass_fraction": .25}
+    if not isinstance(settings, dict) or set(settings) != {"model", "fuel", "fuel_hydrogen_mass_fraction"}:
+        raise InputError("物性モデル・燃料組成の指定が不正です。")
+    if settings["model"] not in ("constant_cp", "nasa9_frozen") or settings["fuel"] not in ("methane", "gasturb_generic", "gasturb_natural_gas", "custom_ch"):
+        raise InputError("対応していない物性モデルまたは燃料です。")
+    fraction = settings["fuel_hydrogen_mass_fraction"]
+    if type(fraction) not in (int, float) or not math.isfinite(fraction) or not 0 <= fraction <= 1:
+        raise InputError("C/H燃料の水素質量割合は0〜1で指定してください。")
+    settings = {"model": settings["model"], "fuel": settings["fuel"], "fuel_hydrogen_mass_fraction": float(fraction)}
     mode = raw.get("mode")
     if mode not in ("airflow", "target_power"):
         raise InputError("計算方法はairflowまたはtarget_powerを指定してください。")
@@ -83,7 +97,7 @@ def validate_input(raw):
     refs["source_revision"] = rev
     if (refs["component_id"] is not None or rev is not None) and refs["project_id"] is None:
         raise InputError("部品・リビジョンを指定する場合はproject_idも必要です。")
-    return {"schema_version": 1, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs}
+    return {"schema_version": 2, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs, "thermodynamics": settings}
 
 
 def input_hash(value):

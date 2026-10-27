@@ -1,4 +1,4 @@
-"""Constant-cp design-point open Brayton cycle; no UI/database imports."""
+"""Design-point open Brayton cycle with constant-cp or NASA9 frozen-mixture properties."""
 import copy
 import math
 import uuid
@@ -6,8 +6,10 @@ from datetime import datetime, timezone
 
 if __package__:
     from .model import InputError, MODULE_ID, MODULE_VERSION, input_hash, validate_input
+    from .thermo import ConstantGas, air, products, provenance, properties_at, solve_temperature, stoichiometric_fuel_air_ratio, hydrogen_fraction
 else:
     from model import InputError, MODULE_ID, MODULE_VERSION, input_hash, validate_input
+    from thermo import ConstantGas, air, products, provenance, properties_at, solve_temperature, stoichiometric_fuel_air_ratio, hydrogen_fraction
 
 T_REF_K = 298.15
 
@@ -16,33 +18,58 @@ def analyze(raw):
     inp = validate_input(raw)
     v = inp["parameters"]
     ta, pa = v["ambient_temperature_k"], v["ambient_pressure_pa"]
-    ca, cg = v["cp_air_j_kg_k"], v["cp_gas_j_kg_k"]
-    ra, rg = v["r_air_j_kg_k"], v["r_gas_j_kg_k"]
-    ga, gg = ca / (ca - ra), cg / (cg - rg)
+    settings = inp["thermodynamics"]
+    nasa = settings["model"] == "nasa9_frozen"
     t1 = ta
     p1 = pa * (1 - v["inlet_pressure_loss"])
     p2 = p1 * v["compressor_pressure_ratio"]
-    t2s = t1 * (p2 / p1) ** (ra / ca)
-    t2 = t1 + (t2s - t1) / v["compressor_efficiency"]
     t3 = v["turbine_inlet_temperature_k"]
     p3 = p2 * (1 - v["combustor_pressure_loss"])
     p4 = pa / (1 - v["exhaust_pressure_loss"])
-    if t3 <= t2:
-        raise InputError("タービン入口全温が圧縮機出口全温以下です。入口全温を上げるか圧力比を下げてください。")
     if p3 <= p4:
         raise InputError("圧力損失を考慮するとタービンが膨張できません。圧力比と損失率を確認してください。")
-    h2, h3 = ca * (t2 - T_REF_K), cg * (t3 - T_REF_K)
-    denominator = v["combustion_efficiency"] * v["fuel_lhv_j_kg"] - h3
-    if denominator <= 0 or h3 <= h2:
-        raise InputError("比熱・LHV・全温の組合せから正の燃料比を求められません。")
-    # ma*h2 + eta_b*mf*LHV = (ma+mf)*h3; fuel sensible enthalpy is zero at T_ref.
-    f = (h3 - h2) / denominator
-    if not 0 < f <= .2:
-        raise InputError("燃空比が簡易モデルの範囲（0より大きく0.2以下）を外れています。")
-    t4s = t3 * (p4 / p3) ** (rg / cg)
-    t4 = t3 - v["turbine_efficiency"] * (t3 - t4s)
-    wc_specific = ca * (t2 - t1)
-    wt_specific = (1 + f) * cg * (t3 - t4)
+    if nasa:
+        airmix = air()
+        t2s = solve_temperature(airmix.entropy_thermal, airmix.entropy_thermal(t1) + airmix.r * math.log(p2/p1), lower=t1)
+        h2 = airmix.h(t1) + (airmix.h(t2s) - airmix.h(t1)) / v["compressor_efficiency"]
+        t2 = solve_temperature(airmix.h, h2, lower=t1)
+    else:
+        airmix = ConstantGas(v["cp_air_j_kg_k"], v["r_air_j_kg_k"])
+        t2s = t1 * (p2 / p1) ** (airmix.r / airmix.constant_cp)
+        t2 = t1 + (t2s - t1) / v["compressor_efficiency"]
+        h2 = airmix.h(t2)
+    if t3 <= t2:
+        raise InputError("タービン入口全温が圧縮機出口全温以下です。入口全温を上げるか圧力比を下げてください。")
+    if nasa:
+        low, high = 0.0, stoichiometric_fuel_air_ratio(settings)
+        def burner_residual(ratio):
+            return (1 + ratio) * products(ratio, settings).h(t3) - h2 - ratio * v["combustion_efficiency"] * v["fuel_lhv_j_kg"]
+        if burner_residual(high) >= 0:
+            raise InputError("指定TITには量論比以上の燃料が必要です。燃料過濃・不完全燃焼は未対応のため、TIT・燃料組成・LHVを確認してください。")
+        for _ in range(65):
+            middle = (low + high) / 2
+            if burner_residual(middle) > 0:
+                low = middle
+            else:
+                high = middle
+        f = (low + high) / 2
+        gasmix = products(f, settings)
+        t4s = solve_temperature(gasmix.entropy_thermal, gasmix.entropy_thermal(t3) + gasmix.r * math.log(p4/p3), upper=t3)
+        h4 = gasmix.h(t3) - v["turbine_efficiency"] * (gasmix.h(t3) - gasmix.h(t4s))
+        t4 = solve_temperature(gasmix.h, h4, lower=t4s, upper=t3)
+    else:
+        gasmix = ConstantGas(v["cp_gas_j_kg_k"], v["r_gas_j_kg_k"])
+        h3 = gasmix.h(t3)
+        denominator = v["combustion_efficiency"] * v["fuel_lhv_j_kg"] - h3
+        if denominator <= 0 or h3 <= h2:
+            raise InputError("比熱・LHV・全温の組合せから正の燃料比を求められません。")
+        f = (h3 - h2) / denominator
+        if not 0 < f <= .2:
+            raise InputError("燃空比が簡易モデルの範囲（0より大きく0.2以下）を外れています。")
+        t4s = t3 * (p4 / p3) ** (gasmix.r / gasmix.constant_cp)
+        t4 = t3 - v["turbine_efficiency"] * (t3 - t4s)
+    wc_specific = airmix.h(t2) - airmix.h(t1)
+    wt_specific = (1 + f) * (gasmix.h(t3) - gasmix.h(t4))
     shaft_specific = v["mechanical_efficiency"] * wt_specific - wc_specific
     ma = v["air_mass_flow_kg_s"]
     if inp["mode"] == "target_power":
@@ -64,10 +91,10 @@ def analyze(raw):
     if not generating:
         gross = net = None
     generator_loss = shaft * (1 - v["generator_efficiency"]) if generating else None
-    exhaust_energy = mg * cg * (t4 - T_REF_K) - ma * ca * (ta - T_REF_K)
+    exhaust_energy = mg * gasmix.h(t4) - ma * airmix.h(ta)
     balance = fuel_heat - (shaft + mechanical_loss + combustor_loss + exhaust_energy)
     electric_balance = (fuel_heat - (net + v["auxiliary_power_w"] + generator_loss + mechanical_loss + combustor_loss + exhaust_energy)) if generating else None
-    warnings = ["比熱一定の概略設計点モデルです。温度依存物性・燃料組成・解離・冷却抽気・性能マップは含みません。",
+    warnings = [("NASA9温度依存物性・乾燥空気・希薄完全燃焼の凍結組成です。燃焼の化学平衡・解離・湿度・冷却抽気は未対応で、GasTurbとの数値一致は未検証です。" if nasa else "比熱一定の旧モデルです。温度依存物性・燃料組成・解離・冷却抽気・性能マップは含みません。"),
                 "回転数は記録用です。回転数の変更による性能変化や軸系マッチングは計算しません。"]
     if not generating:
         warnings.append("圧縮機動力を賄えず、発電運転が成立しない計算条件です。発電量・発電効率は未定義です。")
@@ -83,17 +110,24 @@ def analyze(raw):
                "heat_rate_kj_kwh": fuel_heat / net * 3600 if generating and net > 0 else None,
                "specific_fuel_consumption_kg_kwh": mf / net * 3.6e6 if generating and net > 0 else None,
                "exhaust_temperature_k": t4, "turbine_expansion_ratio": p3 / p4,
-               "back_work_ratio": wc / (wt * v["mechanical_efficiency"]), "gamma_air": ga, "gamma_gas": gg,
+               "back_work_ratio": wc / (wt * v["mechanical_efficiency"]), "gamma_air": airmix.gamma(t1), "gamma_gas": gasmix.gamma(t3),
                "compressor_isentropic_exit_temperature_k": t2s, "turbine_isentropic_exit_temperature_k": t4s}
     stations = []
     for key, name, t, p, mass, fluid in (("0", "大気", ta, pa, ma, "air"), ("1", "圧縮機入口", t1, p1, ma, "air"),
                                        ("2", "圧縮機出口", t2, p2, ma, "air"), ("3", "タービン入口", t3, p3, mg, "gas"),
                                        ("4", "タービン出口", t4, p4, mg, "gas"), ("5", "排気境界", t4, pa, mg, "gas")):
         stations.append({"id": key, "name": name, "total_temperature_k": t, "total_pressure_pa": p,
-                         "mass_flow_kg_s": mass, "fluid": fluid})
-    result = {"schema_version": 1, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+                         "mass_flow_kg_s": mass, "fluid": fluid, **properties_at(airmix if fluid == "air" else gasmix, t)})
+    metadata = {"model": settings["model"], "fuel": settings["fuel"] if nasa else None,
+                "dataset": provenance() if nasa else None, "air_mass_fractions": airmix.mass_fractions if nasa else None,
+                "product_mass_fractions": gasmix.mass_fractions if nasa else None,
+                "fuel_element_mass_fractions": {"C": 1-hydrogen_fraction(settings), "H": hydrogen_fraction(settings)} if nasa else None,
+                "stoichiometric_fuel_air_ratio": stoichiometric_fuel_air_ratio(settings) if nasa else None,
+                "equivalence_ratio": f / stoichiometric_fuel_air_ratio(settings) if nasa else None}
+    result = {"schema_version": 2, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
               "status": "success" if generating and net > 0 else "non_generating",
-              "model": "constant_cp_ideal_gas_fuel_mass", "enthalpy_reference_temperature_k": T_REF_K,
+              "model": "nasa9_frozen_complete_combustion" if nasa else "constant_cp_ideal_gas_fuel_mass", "enthalpy_reference_temperature_k": T_REF_K,
+              "thermodynamics": metadata,
               "metrics": metrics, "stations": stations,
               "energy_balance": {"combustion_loss_w": combustor_loss, "mechanical_loss_w": mechanical_loss,
                                  "generator_loss_w": generator_loss, "auxiliary_power_w": v["auxiliary_power_w"],
@@ -109,7 +143,7 @@ def run_case(raw):
     inp = validate_input(raw)
     started = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
     result = analyze(inp)
-    return {"format": "gas-turbine-cycle-case", "schema_version": 1, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+    return {"format": "gas-turbine-cycle-case", "schema_version": 2, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
             "run_id": str(uuid.uuid4()), "started_at": started, "completed_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
             "input_hash": input_hash(inp), "input": inp, "result": result}
 

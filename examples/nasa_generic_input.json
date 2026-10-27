@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "mode": "airflow",
+  "name": "nasa_generic・操作説明用・実機未検証",
+  "parameters": {
+    "ambient_temperature_k": 288.15,
+    "ambient_pressure_pa": 101325,
+    "air_mass_flow_kg_s": 1.2,
+    "target_net_power_w": 100000,
+    "shaft_speed_rpm": 60000,
+    "compressor_pressure_ratio": 3.8,
+    "turbine_inlet_temperature_k": 1123,
+    "compressor_efficiency": 0.78,
+    "turbine_efficiency": 0.85,
+    "combustion_efficiency": 0.99,
+    "mechanical_efficiency": 0.98,
+    "generator_efficiency": 0.95,
+    "inlet_pressure_loss": 0.01,
+    "combustor_pressure_loss": 0.04,
+    "exhaust_pressure_loss": 0.02,
+    "fuel_lhv_j_kg": 43100000.0,
+    "auxiliary_power_w": 2000,
+    "cp_air_j_kg_k": 1005,
+    "cp_gas_j_kg_k": 1150,
+    "r_air_j_kg_k": 287.05,
+    "r_gas_j_kg_k": 287.05
+  },
+  "thermodynamics": {
+    "model": "nasa9_frozen",
+    "fuel": "gasturb_generic",
+    "fuel_hydrogen_mass_fraction": 0.25
+  },
+  "context": {
+    "project_id": null,
+    "component_id": null,
+    "source_revision": null
+  }
+}

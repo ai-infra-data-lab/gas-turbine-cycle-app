@@ -1,4 +1,4 @@
-# Cycle Studio 0.1 — 一軸シンプルサイクル
+# Cycle Studio 0.2 — 一軸シンプルサイクル
 
 定常・開放シンプルサイクルの設計点計算を行う独立アプリ。Python 3.10以上の標準ライブラリだけで動作し、インストール・インターネット接続・外部CDN・アカウントは不要です。
 
@@ -31,11 +31,17 @@ Python 3.10以上が必要です。追加Pythonパッケージのインストー
 
 画面右上「操作・計算モデル」（`/guide`）に操作、数式、物性・損失の定義、一次資料、サンプル結果を掲載。
 
-比熱一定の理想気体。燃料LHV・空気/ガスのcp/Rを入力し、γ=cp/(cp−R)で計算します。燃料は298.15 Kで顕熱0、空気/ガスも同じ顕熱基準です。燃焼ガス組成や温度依存cpは計算しません。回転数は記録用で性能に影響しません。
+既定はNASA CEA公式データのNASA9多項式による温度依存理想気体です。N2・O2・Ar・CO2・H2Oのcp(T)、h(T)、エントロピー温度関数、cv、γを計算し、圧縮・膨張温度をエントロピーとエンタルピーから解きます。γを一定の指数に代入する近似ではありません。「物性・組成」で位置ごとの値と組成を確認できます。比熱一定の旧モデルも選べます。
 
-既定入力は検討用の仮定です。既定1.2 kg/sの正味発電は約138.723 kW、効率約14.2764%（LHV）。モデル内部の計算値であり、実機との相関は未検証です。管理アプリのサンプルにあった「100 kW」は要求値で、自動的にその出力になる条件ではありません。
+燃料はメタン、GasTurb資料のGeneric（C86.08/H13.92質量%）、天然ガス組成（CH4 90/C2H6 10質量%）、任意C/H質量比。乾燥空気との希薄完全燃焼から組成を求め、圧縮・膨張中は組成を固定します。LHVは独立入力で、組成の選択によって自動変更しません。燃料298.15 K、各化学種の同温度の顕熱を0として、生成エンタルピーとLHVの二重計上を避けます。
 
-再生、再熱、中間冷却、冷却抽気、燃料組成、化学平衡、性能マップ、過渡、軸系マッチング、設計寸法は対象外。負の軸出力では発電機をモーターとして計算せず、発電関連値をnullとします。補機消費で正味出力が0以下の場合は効率等をnullにします。
+GasTurbがNASA CEA由来の物性を利用することは[公式資料](https://www.gasturb.com/Downloads/Manuals/GasTurbDetails6.pdf)の2.1、2.2、2.5.7、5.1に記載されています。本アプリは同じNASA系の基礎データと凍結組成の考え方を採用しますが、GasTurb配布表の同一版・補間・化学平衡計算の再現ではなく、GasTurbとの数値一致は未検証です。
+
+データはNASA公式`nasa/cea`のコミット`985fd33368b2334c4162a586c499e0ab41d12bd3`に固定。200–6000 Kの係数を同梱し外挿しません。サイクル入力の温度等にはさらに狭いソフト適用範囲があります。出典、抽出法、Apache-2.0のライセンス・NOTICEは`THIRD_PARTY.md`と`third_party/nasa_cea/`を参照。回転数は記録用です。
+
+既定入力は検討用の仮定です。既定NASAモデル・メタン・1.2 kg/sでは正味発電約143.958 kW、効率約15.3316%（LHV）、燃料約67.6054 kg/h。旧比熱一定モデルでは約138.723 kW、14.2764%です。モデル内部の計算値であり、実機との相関は未検証です。管理アプリのサンプルにあった「100 kW」は要求値で、自動的にその出力になる条件ではありません。
+
+再生、再熱、中間冷却、冷却抽気、湿度、化学平衡・解離、性能マップ、過渡、軸系マッチング、設計寸法は対象外。負の軸出力では発電機をモーターとして計算せず、発電関連値をnullとします。補機消費で正味出力が0以下の場合は効率等をnullにします。
 
 ## 将来の統合
 
@@ -44,8 +50,8 @@ Python 3.10以上が必要です。追加Pythonパッケージのインストー
 CLI例：
 
 ```powershell
-python cli.py --input examples/flow_input.json --output result.json
-python cli.py --input examples/target_100kw_input.json --output result-100kw.json
+python cli.py --input examples/nasa_methane_input.json --output result.json
+python cli.py --input examples/nasa_target_100kw_input.json --output result-100kw.json
 ```
 
 `--input` を省くと既定条件を計算します。結果JSONを入力に指定した場合も、入力を取り出して再計算します。
@@ -54,4 +60,4 @@ python cli.py --input examples/target_100kw_input.json --output result-100kw.jso
 
 全ケースのバックアップは、終了後に `data/cases.sqlite3` をコピー。JSON・DBは暗号化していません。ケースは追加保存で既存の結果を上書きしません。
 
-`python -m unittest -v test_cycle.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。
+`python -m unittest -v test_cycle.py test_nasa.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。旧JSONは比熱一定として移行し、旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。

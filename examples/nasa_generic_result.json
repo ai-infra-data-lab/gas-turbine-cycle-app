@@ -1,0 +1,222 @@
+{
+  "format": "gas-turbine-cycle-case",
+  "schema_version": 2,
+  "module_id": "gt.cycle.simple_single_shaft",
+  "module_version": "0.2.0",
+  "run_id": "1966835b-644c-4c88-9be7-fd979a036a83",
+  "started_at": "2026-10-27T00:38:30.541+00:00",
+  "completed_at": "2026-10-27T00:38:30.543+00:00",
+  "input_hash": "41471db60019ce820804d8648496ffa9d2dacbabf8d3fd62de4e848b6325ec80",
+  "input": {
+    "schema_version": 2,
+    "mode": "airflow",
+    "name": "nasa_generic・操作説明用・実機未検証",
+    "parameters": {
+      "ambient_temperature_k": 288.15,
+      "ambient_pressure_pa": 101325.0,
+      "air_mass_flow_kg_s": 1.2,
+      "target_net_power_w": 100000.0,
+      "shaft_speed_rpm": 60000.0,
+      "compressor_pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1123.0,
+      "compressor_efficiency": 0.78,
+      "turbine_efficiency": 0.85,
+      "combustion_efficiency": 0.99,
+      "mechanical_efficiency": 0.98,
+      "generator_efficiency": 0.95,
+      "inlet_pressure_loss": 0.01,
+      "combustor_pressure_loss": 0.04,
+      "exhaust_pressure_loss": 0.02,
+      "fuel_lhv_j_kg": 43100000.0,
+      "auxiliary_power_w": 2000.0,
+      "cp_air_j_kg_k": 1005.0,
+      "cp_gas_j_kg_k": 1150.0,
+      "r_air_j_kg_k": 287.05,
+      "r_gas_j_kg_k": 287.05
+    },
+    "context": {
+      "project_id": null,
+      "component_id": null,
+      "source_revision": null
+    },
+    "thermodynamics": {
+      "model": "nasa9_frozen",
+      "fuel": "gasturb_generic",
+      "fuel_hydrogen_mass_fraction": 0.25
+    }
+  },
+  "result": {
+    "schema_version": 2,
+    "module_id": "gt.cycle.simple_single_shaft",
+    "module_version": "0.2.0",
+    "status": "success",
+    "model": "nasa9_frozen_complete_combustion",
+    "enthalpy_reference_temperature_k": 298.15,
+    "thermodynamics": {
+      "model": "nasa9_frozen",
+      "fuel": "gasturb_generic",
+      "dataset": {
+        "dataset_id": "nasa-cea-985fd33368b2-nasa9-5species",
+        "source_repository": "nasa/cea",
+        "source_commit": "985fd33368b2334c4162a586c499e0ab41d12bd3",
+        "source_url": "https://raw.githubusercontent.com/nasa/cea/985fd33368b2334c4162a586c499e0ab41d12bd3/data/thermo.inp",
+        "source_file_sha256": "fa7746572952d74e249e818a82a35c113829742fb421a308e167185528884363",
+        "retrieved_date": "2026-10-27",
+        "temperature_range_k": [
+          200,
+          6000
+        ],
+        "universal_gas_constant_j_kmol_k": 8314.51
+      },
+      "air_mass_fractions": {
+        "N2": 0.7551836942362111,
+        "O2": 0.23141563264488882,
+        "Ar": 0.01291598558886021,
+        "CO2": 0.00048468753003990333
+      },
+      "product_mass_fractions": {
+        "N2": 0.7418626260595318,
+        "O2": 0.16739237879276028,
+        "Ar": 0.012688153968671127,
+        "CO2": 0.056113537047762174,
+        "H2O": 0.021943304131274592
+      },
+      "fuel_element_mass_fractions": {
+        "C": 0.8608,
+        "H": 0.1392
+      },
+      "stoichiometric_fuel_air_ratio": 0.06810103851811128,
+      "equivalence_ratio": 0.26367067056047483
+    },
+    "metrics": {
+      "air_mass_flow_kg_s": 1.2,
+      "fuel_mass_flow_kg_s": 0.02154749579032215,
+      "gas_mass_flow_kg_s": 1.221547495790322,
+      "fuel_air_ratio": 0.017956246491935127,
+      "compressor_power_w": 206731.4941732988,
+      "turbine_gas_power_w": 364093.0821037676,
+      "turbine_shaft_power_w": 356811.22046169225,
+      "net_shaft_power_w": 150079.72628839346,
+      "gross_electric_power_w": 142575.73997397377,
+      "net_electric_power_w": 140575.73997397377,
+      "fuel_heat_input_w": 928697.0685628847,
+      "shaft_efficiency_lhv": 0.16160245506172946,
+      "electric_efficiency_lhv": 0.1513687775406766,
+      "heat_rate_kj_kwh": 23782.97597754325,
+      "specific_fuel_consumption_kg_kwh": 0.5518091874139965,
+      "exhaust_temperature_k": 868.9116337158594,
+      "turbine_expansion_ratio": 3.5392895999999996,
+      "back_work_ratio": 0.5793861916836602,
+      "gamma_air": 1.4002254128527962,
+      "gamma_gas": 1.314945833741833,
+      "compressor_isentropic_exit_temperature_k": 421.3062562746634,
+      "turbine_isentropic_exit_temperature_k": 822.7579936980112
+    },
+    "stations": [
+      {
+        "id": "0",
+        "name": "大気",
+        "total_temperature_k": 288.15,
+        "total_pressure_pa": 101325.0,
+        "mass_flow_kg_s": 1.2,
+        "fluid": "air",
+        "cp_j_kg_k": 1004.2796972902721,
+        "cv_j_kg_k": 717.2271607641867,
+        "gamma": 1.4002254128527962,
+        "gas_constant_j_kg_k": 287.05253652608536,
+        "molecular_weight_kg_kmol": 28.9651159353,
+        "sensible_enthalpy_j_kg": -10044.97962196819,
+        "entropy_thermal_function_j_kg_k": -34.26894473935444
+      },
+      {
+        "id": "1",
+        "name": "圧縮機入口",
+        "total_temperature_k": 288.15,
+        "total_pressure_pa": 100311.75,
+        "mass_flow_kg_s": 1.2,
+        "fluid": "air",
+        "cp_j_kg_k": 1004.2796972902721,
+        "cv_j_kg_k": 717.2271607641867,
+        "gamma": 1.4002254128527962,
+        "gas_constant_j_kg_k": 287.05253652608536,
+        "molecular_weight_kg_kmol": 28.9651159353,
+        "sensible_enthalpy_j_kg": -10044.97962196819,
+        "entropy_thermal_function_j_kg_k": -34.26894473935444
+      },
+      {
+        "id": "2",
+        "name": "圧縮機出口",
+        "total_temperature_k": 458.49704529934104,
+        "total_pressure_pa": 381184.64999999997,
+        "mass_flow_kg_s": 1.2,
+        "fluid": "air",
+        "cp_j_kg_k": 1022.0487796943133,
+        "cv_j_kg_k": 734.9962431682279,
+        "gamma": 1.390549664973436,
+        "gas_constant_j_kg_k": 287.05253652608536,
+        "molecular_weight_kg_kmol": 28.9651159353,
+        "sensible_enthalpy_j_kg": 162231.26552244747,
+        "entropy_thermal_function_j_kg_k": 435.15182043071997
+      },
+      {
+        "id": "3",
+        "name": "タービン入口",
+        "total_temperature_k": 1123.0,
+        "total_pressure_pa": 365937.26399999997,
+        "mass_flow_kg_s": 1.221547495790322,
+        "fluid": "gas",
+        "cp_j_kg_k": 1198.4881227905023,
+        "cv_j_kg_k": 911.4353550062693,
+        "gamma": 1.314945833741833,
+        "gas_constant_j_kg_k": 287.05276778423297,
+        "molecular_weight_kg_kmol": 28.965092600151177,
+        "sensible_enthalpy_j_kg": 912029.716686043,
+        "entropy_thermal_function_j_kg_k": 1439.194535023813
+      },
+      {
+        "id": "4",
+        "name": "タービン出口",
+        "total_temperature_k": 868.9116337158594,
+        "total_pressure_pa": 103392.85714285714,
+        "mass_flow_kg_s": 1.221547495790322,
+        "fluid": "gas",
+        "cp_j_kg_k": 1145.1990838161562,
+        "cv_j_kg_k": 858.1463160319232,
+        "gamma": 1.334503292062789,
+        "gas_constant_j_kg_k": 287.05276778423297,
+        "molecular_weight_kg_kmol": 28.965092600151177,
+        "sensible_enthalpy_j_kg": 613970.8337048249,
+        "entropy_thermal_function_j_kg_k": 1138.57918766685
+      },
+      {
+        "id": "5",
+        "name": "排気境界",
+        "total_temperature_k": 868.9116337158594,
+        "total_pressure_pa": 101325.0,
+        "mass_flow_kg_s": 1.221547495790322,
+        "fluid": "gas",
+        "cp_j_kg_k": 1145.1990838161562,
+        "cv_j_kg_k": 858.1463160319232,
+        "gamma": 1.334503292062789,
+        "gas_constant_j_kg_k": 287.05276778423297,
+        "molecular_weight_kg_kmol": 28.965092600151177,
+        "sensible_enthalpy_j_kg": 613970.8337048249,
+        "entropy_thermal_function_j_kg_k": 1138.57918766685
+      }
+    ],
+    "energy_balance": {
+      "combustion_loss_w": 9286.970685628856,
+      "mechanical_loss_w": 7281.861642075359,
+      "generator_loss_w": 7503.98631441968,
+      "auxiliary_power_w": 2000.0,
+      "exhaust_net_sensible_energy_w": 762048.509946787,
+      "shaft_balance_residual_w": 0.0,
+      "electric_balance_residual_w": 0.0,
+      "mass_balance_residual_kg_s": -3.8163916471489756e-17
+    },
+    "warnings": [
+      "NASA9温度依存物性・乾燥空気・希薄完全燃焼の凍結組成です。燃焼の化学平衡・解離・湿度・冷却抽気は未対応で、GasTurbとの数値一致は未検証です。",
+      "回転数は記録用です。回転数の変更による性能変化や軸系マッチングは計算しません。"
+    ]
+  }
+}

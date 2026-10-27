@@ -13,10 +13,12 @@ if __package__:
     from .engine import run_case, sweep
     from .model import MODULE_ID, MODULE_VERSION, default_input, ui_schema, validate_input
     from .storage import CaseStore
+    from .thermo import provenance, FUEL_NAMES
 else:
     from engine import run_case, sweep
     from model import MODULE_ID, MODULE_VERSION, default_input, ui_schema, validate_input
     from storage import CaseStore
+    from thermo import provenance, FUEL_NAMES
 
 ROOT = Path(__file__).resolve().parent
 TOKEN = secrets.token_urlsafe(32)
@@ -26,7 +28,7 @@ def read_input_file(data):
     if not isinstance(data, dict):
         raise ValueError("JSONオブジェクトを指定してください。")
     if data.get("format") == "gas-turbine-cycle-case":
-        if type(data.get("schema_version")) is not int or data.get("schema_version") != 1 or data.get("module_id") != MODULE_ID or data.get("module_version") != MODULE_VERSION:
+        if type(data.get("schema_version")) is not int or data.get("schema_version") not in (1, 2) or data.get("module_id") != MODULE_ID or data.get("module_version") not in ("0.1.0", MODULE_VERSION):
             raise ValueError("このバージョンに対応した計算ケースを選択してください。")
         data = data.get("input")
     return validate_input(data)
@@ -66,7 +68,8 @@ class Handler(BaseHTTPRequestHandler):
                 name, mime = static[path.path]
                 return self.send(200, (ROOT / name).read_bytes(), mime)
             if path.path == "/api/schema":
-                return self.json({"fields": ui_schema(), "default": default_input(), "module_id": MODULE_ID, "module_version": MODULE_VERSION})
+                return self.json({"fields": ui_schema(), "default": default_input(), "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+                                  "thermo_dataset": provenance(), "fuels": FUEL_NAMES})
             if path.path == "/api/cases":
                 return self.json(self.server.store.list())
             if path.path == "/api/case":

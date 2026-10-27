@@ -1,0 +1,113 @@
+{
+  "reference": "Cantera 3.2.0 NASA9 evaluator and SP/HP state solvers",
+  "cantera_version": "3.2.0",
+  "dataset_id": "nasa-cea-985fd33368b2-nasa9-5species",
+  "dataset_source_sha256": "fa7746572952d74e249e818a82a35c113829742fb421a308e167185528884363",
+  "species_temperature_pairs": 40,
+  "cycle_cases": [
+    {
+      "fuel": "methane",
+      "pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1123,
+      "cantera_net_power_w": 143958.25032330325,
+      "temperature_max_error_k": 4.728804015030619e-09,
+      "power_relative_error": 3.882121328282893e-11
+    },
+    {
+      "fuel": "methane",
+      "pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1400,
+      "cantera_net_power_w": 237451.05392708705,
+      "temperature_max_error_k": 4.728804015030619e-09,
+      "power_relative_error": 2.4393301852630532e-11
+    },
+    {
+      "fuel": "methane",
+      "pressure_ratio": 8,
+      "turbine_inlet_temperature_k": 1123,
+      "cantera_net_power_w": 150874.88354461736,
+      "temperature_max_error_k": 5.856009011040442e-10,
+      "power_relative_error": 7.657182712180196e-12
+    },
+    {
+      "fuel": "methane",
+      "pressure_ratio": 8,
+      "turbine_inlet_temperature_k": 1400,
+      "cantera_net_power_w": 288904.6102811968,
+      "temperature_max_error_k": 4.3496584112290293e-10,
+      "power_relative_error": 1.867894125343e-12
+    },
+    {
+      "fuel": "gasturb_generic",
+      "pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1123,
+      "cantera_net_power_w": 139507.1610127783,
+      "temperature_max_error_k": 4.728804015030619e-09,
+      "power_relative_error": 4.254761601289196e-11
+    },
+    {
+      "fuel": "gasturb_generic",
+      "pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1400,
+      "cantera_net_power_w": 228941.07000642855,
+      "temperature_max_error_k": 4.728804015030619e-09,
+      "power_relative_error": 2.5423209759689798e-11
+    },
+    {
+      "fuel": "gasturb_generic",
+      "pressure_ratio": 8,
+      "turbine_inlet_temperature_k": 1123,
+      "cantera_net_power_w": 145444.89656978202,
+      "temperature_max_error_k": 6.858726919745095e-10,
+      "power_relative_error": 8.577977182036579e-12
+    },
+    {
+      "fuel": "gasturb_generic",
+      "pressure_ratio": 8,
+      "turbine_inlet_temperature_k": 1400,
+      "cantera_net_power_w": 277734.69644367823,
+      "temperature_max_error_k": 4.3496584112290293e-10,
+      "power_relative_error": 1.9570588211335836e-12
+    },
+    {
+      "fuel": "gasturb_natural_gas",
+      "pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1123,
+      "cantera_net_power_w": 143755.48379903703,
+      "temperature_max_error_k": 4.728804015030619e-09,
+      "power_relative_error": 3.88830563257251e-11
+    },
+    {
+      "fuel": "gasturb_natural_gas",
+      "pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1400,
+      "cantera_net_power_w": 237060.38759018795,
+      "temperature_max_error_k": 4.728804015030619e-09,
+      "power_relative_error": 2.4431536754228696e-11
+    },
+    {
+      "fuel": "gasturb_natural_gas",
+      "pressure_ratio": 8,
+      "turbine_inlet_temperature_k": 1123,
+      "cantera_net_power_w": 150627.52507082027,
+      "temperature_max_error_k": 5.904894351260737e-10,
+      "power_relative_error": 7.7051159833367e-12
+    },
+    {
+      "fuel": "gasturb_natural_gas",
+      "pressure_ratio": 8,
+      "turbine_inlet_temperature_k": 1400,
+      "cantera_net_power_w": 288391.84298648336,
+      "temperature_max_error_k": 4.3496584112290293e-10,
+      "power_relative_error": 1.8708116131849697e-12
+    }
+  ],
+  "maximum_errors": {
+    "cp_relative": 3.9669025019820253e-16,
+    "h_relative": 1.3761570344644064e-10,
+    "s_relative": 4.133063499562533e-16,
+    "temperature_absolute_k": 4.728804015030619e-09,
+    "power_relative": 4.254761601289196e-11
+  },
+  "note": "Same pinned coefficients; NASA Ru/molecular-weight conventions explicitly reconciled. This is not a CEA execution or a GasTurb comparison."
+}

@@ -17,7 +17,7 @@ from storage import CaseStore
 
 class CycleTests(unittest.TestCase):
     def case(self, **parameters):
-        raw = default_input()
+        raw = default_input('constant_cp')
         raw["parameters"].update(parameters)
         return raw
 
@@ -49,14 +49,14 @@ class CycleTests(unittest.TestCase):
                         self.assertLess(abs(b["electric_balance_residual_w"]), 1e-6)
 
     def test_fuel_mass_is_included_in_turbine_power(self):
-        r = analyze(default_input())
+        r = analyze(default_input('constant_cp'))
         m = r["metrics"]
         self.assertGreater(r["stations"][3]["mass_flow_kg_s"], r["stations"][2]["mass_flow_kg_s"])
         expected = m["gas_mass_flow_kg_s"] * 1150 * (1123 - m["exhaust_temperature_k"])
         self.assertAlmostEqual(m["turbine_gas_power_w"], expected)
 
     def test_burner_energy_with_shared_reference(self):
-        inp = default_input()
+        inp = default_input('constant_cp')
         r = analyze(inp)
         m, s, v = r["metrics"], r["stations"], inp["parameters"]
         hin = m["air_mass_flow_kg_s"] * v["cp_air_j_kg_k"] * (s[2]["total_temperature_k"] - T_REF_K)
@@ -64,7 +64,7 @@ class CycleTests(unittest.TestCase):
         self.assertAlmostEqual(hin + v["combustion_efficiency"] * m["fuel_heat_input_w"], hout, places=6)
 
     def test_target_output_and_forward_calculation_agree(self):
-        raw = default_input()
+        raw = default_input('constant_cp')
         raw["mode"] = "target_power"
         r = analyze(raw)
         self.assertAlmostEqual(r["metrics"]["net_electric_power_w"], 100000, places=7)
@@ -79,7 +79,7 @@ class CycleTests(unittest.TestCase):
         self.assertAlmostEqual(b["metrics"]["net_electric_power_w"], 2 * a["metrics"]["net_electric_power_w"] + 2000)
 
     def test_shaft_generator_and_lhv_definitions(self):
-        r = analyze(default_input())
+        r = analyze(default_input('constant_cp'))
         m = r["metrics"]
         self.assertAlmostEqual(m["net_shaft_power_w"], .98 * m["turbine_gas_power_w"] - m["compressor_power_w"])
         self.assertAlmostEqual(m["net_electric_power_w"], .95 * m["net_shaft_power_w"] - 2000)
@@ -87,7 +87,7 @@ class CycleTests(unittest.TestCase):
         self.assertAlmostEqual(m["specific_fuel_consumption_kg_kwh"], m["fuel_mass_flow_kg_s"] * 3600 / (m["net_electric_power_w"] / 1000))
 
     def test_exhaust_boundary_and_station_pressure_definitions(self):
-        r = analyze(default_input())
+        r = analyze(default_input('constant_cp'))
         s = r["stations"]
         self.assertAlmostEqual(s[1]["total_pressure_pa"], .99 * 101325)
         self.assertAlmostEqual(s[2]["total_pressure_pa"], s[1]["total_pressure_pa"] * 3.8)
@@ -140,17 +140,17 @@ class CycleTests(unittest.TestCase):
             raw = self.case(air_mass_flow_kg_s=value)
             with self.subTest(value=value), self.assertRaises(InputError):
                 analyze(raw)
-        raw = default_input()
+        raw = default_input('constant_cp')
         raw["parameters"]["unrecognized"] = 1
         with self.assertRaises(InputError):
             analyze(raw)
-        raw = default_input()
+        raw = default_input('constant_cp')
         raw["schema_version"] = True
         with self.assertRaises(InputError):
             analyze(raw)
 
     def test_result_hash_and_engine_do_not_mutate_input(self):
-        raw = default_input()
+        raw = default_input('constant_cp')
         before = copy.deepcopy(raw)
         case = run_case(raw)
         self.assertEqual(raw, before)
@@ -160,7 +160,7 @@ class CycleTests(unittest.TestCase):
         self.assertNotEqual(case["input_hash"], input_hash(raw))
 
     def test_context_reference_is_retained_and_checked(self):
-        raw = default_input()
+        raw = default_input('constant_cp')
         raw["context"] = {"project_id": str(uuid4()), "component_id": str(uuid4()), "source_revision": 3}
         self.assertEqual(run_case(raw)["input"]["context"], raw["context"])
         raw["context"]["project_id"] = None
@@ -173,7 +173,7 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(a["metrics"], b["metrics"])
 
     def test_sweep_fixed_mass_and_failed_points(self):
-        raw = default_input()
+        raw = default_input('constant_cp')
         raw["mode"] = "target_power"
         response = sweep(raw, 1.01, 50, 11)
         self.assertAlmostEqual(response["fixed_air_mass_flow_kg_s"], analyze(raw)["metrics"]["air_mass_flow_kg_s"])
@@ -189,10 +189,10 @@ class CycleTests(unittest.TestCase):
     def test_sweep_boundaries(self):
         for a, b, n in ((20, 2, 10), (1, 20, 10), (2, 60, 10), (2, 20, 10000), (2, 20, True), (float("nan"), 20, 10)):
             with self.subTest(a=a, b=b, n=n), self.assertRaises(InputError):
-                sweep(default_input(), a, b, n)
+                sweep(default_input('constant_cp'), a, b, n)
 
     def test_import_uses_inputs_and_rejects_incompatible_module(self):
-        case = run_case(default_input())
+        case = run_case(default_input('constant_cp'))
         case["result"]["metrics"]["net_electric_power_w"] = 1e12
         inp = read_input_file(case)
         self.assertLess(run_case(inp)["result"]["metrics"]["net_electric_power_w"], 1e6)
@@ -204,7 +204,7 @@ class CycleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "cases.sqlite3"
             store = CaseStore(path)
-            a = run_case(default_input())
+            a = run_case(default_input('constant_cp'))
             store.save(a)
             a["input"]["name"] = "変更しても元は変わらない"
             b = run_case(self.case(compressor_pressure_ratio=5))
@@ -241,7 +241,7 @@ class APITests(unittest.TestCase):
             return exc.code, exc.read(), exc.headers
 
     def test_calculation_save_reload_and_input_import(self):
-        status, body, _ = self.request("/api/calculate", {"input": default_input()})
+        status, body, _ = self.request("/api/calculate", {"input": default_input('constant_cp')})
         self.assertEqual(status, 200)
         case = json.loads(body)
         status, body, _ = self.request("/api/save", {"input": case["input"], "result": {"fabricated": True}})
@@ -251,11 +251,11 @@ class APITests(unittest.TestCase):
         self.assertEqual(self.request("/api/case?id=" + saved["run_id"])[0], 200)
         self.assertEqual(self.request("/api/import", {"document": saved})[0], 200)
         self.assertEqual(self.request("/api/cases")[0], 200)
-        self.assertEqual(self.request("/api/sweep", {"input": default_input(), "count": 5})[0], 200)
+        self.assertEqual(self.request("/api/sweep", {"input": default_input('constant_cp'), "count": 5})[0], 200)
 
     def test_security_and_invalid_inputs(self):
-        self.assertEqual(self.request("/api/calculate", {"input": default_input()}, {"X-Cycle-Token": "bad"})[0], 403)
-        self.assertEqual(self.request("/api/calculate", {"input": default_input()}, {"Origin": "https://example.com"})[0], 403)
+        self.assertEqual(self.request("/api/calculate", {"input": default_input('constant_cp')}, {"X-Cycle-Token": "bad"})[0], 403)
+        self.assertEqual(self.request("/api/calculate", {"input": default_input('constant_cp')}, {"Origin": "https://example.com"})[0], 403)
         self.assertEqual(self.request("/api/schema", headers={"Host": "example.com"})[0], 403)
         self.assertEqual(self.request("/api/calculate", {"input": {}})[0], 400)
         self.assertEqual(self.request("/api/import", {"document": {}})[0], 400)
@@ -269,6 +269,22 @@ class APITests(unittest.TestCase):
             self.assertIn("frame-ancestors 'none'", headers["Content-Security-Policy"])
             if path == "/":
                 self.assertIn(TOKEN.encode(), body)
+
+    def test_nasa_http_default_and_legacy_input_migration(self):
+        schema = json.loads(self.request("/api/schema")[1])
+        self.assertEqual(schema["default"]["thermodynamics"]["model"], "nasa9_frozen")
+        self.assertEqual(schema["module_version"], "0.2.0")
+        status, data, _ = self.request("/api/calculate", {"input": schema["default"]})
+        self.assertEqual(status, 200)
+        result = json.loads(data)["result"]
+        self.assertGreater(result["stations"][3]["cp_j_kg_k"], result["stations"][1]["cp_j_kg_k"])
+        self.assertEqual(result["thermodynamics"]["dataset"]["dataset_id"], "nasa-cea-985fd33368b2-nasa9-5species")
+        legacy = default_input("constant_cp")
+        legacy["schema_version"] = 1
+        del legacy["thermodynamics"]
+        status, data, _ = self.request("/api/import", {"document": legacy})
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(data)["input"]["thermodynamics"]["model"], "constant_cp")
 
 
 if __name__ == "__main__":
