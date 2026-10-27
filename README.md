@@ -1,4 +1,4 @@
-# Cycle Studio 0.2 — 一軸シンプルサイクル
+# Cycle Studio 0.3 — 一軸シンプルサイクル
 
 定常・開放シンプルサイクルの設計点計算を行う独立アプリ。Python 3.10以上の標準ライブラリだけで動作し、インストール・インターネット接続・外部CDN・アカウントは不要です。
 
@@ -27,6 +27,17 @@ Python 3.10以上が必要です。追加Pythonパッケージのインストー
 - 入力・結果JSON、状態表CSV、保存ケースの読込と比較。入力変更後は結果の保存・書出しを無効化。
 - `data/cases.sqlite3` に明示保存。既存アプリ・管理DBは変更しない。
 
+## 複数段の段間性能（v0.3）
+
+圧縮機・タービンを各1〜30段に配分し、「段間性能」で入口/出口全温・全圧、段圧力比、比仕事、動力、段等エントロピー効率、cp/γ、仕事・対数圧力配分を表示します。全体効率と端点を固定した一定ポリトロープ効率の経路上の配分です。
+
+- 配分方法は「圧力比の対数」と「比仕事」。空欄は均等、任意の正の重みで前段/後段の配分を指定可能。
+- 任意の段平均径と軸回転数からU・ψ=Δh/U²。径未指定時はnull。
+- 4段圧縮機・3段タービンの操作例、段間CSV、保存・比較・JSON対応。
+- 全体効率・サイクル出力は配分によって変えない。翼列損失・速度三角形・冷却・段間圧損・実機段性能を予測する機能ではない。
+
+調査した理論、選定理由、式、操作手順、数値入り表、出典は[STAGING.md](STAGING.md)を参照。CLI例：`python cli.py --input examples/multistage_input.json --output result.json`。
+
 ## 計算モデル・操作
 
 画面右上「操作・計算モデル」（`/guide`）に操作、数式、物性・損失の定義、一次資料、サンプル結果を掲載。
@@ -37,7 +48,7 @@ Python 3.10以上が必要です。追加Pythonパッケージのインストー
 
 GasTurbがNASA CEA由来の物性を利用することは[公式資料](https://www.gasturb.com/Downloads/Manuals/GasTurbDetails6.pdf)の2.1、2.2、2.5.7、5.1に記載されています。本アプリは同じNASA系の基礎データと凍結組成の考え方を採用しますが、GasTurb配布表の同一版・補間・化学平衡計算の再現ではなく、GasTurbとの数値一致は未検証です。
 
-データはNASA公式`nasa/cea`のコミット`985fd33368b2334c4162a586c499e0ab41d12bd3`に固定。200–6000 Kの係数を同梱し外挿しません。サイクル入力の温度等にはさらに狭いソフト適用範囲があります。出典、抽出法、Apache-2.0のライセンス・NOTICEは`THIRD_PARTY.md`と`third_party/nasa_cea/`を参照。回転数は記録用です。
+データはNASA公式`nasa/cea`のコミット`985fd33368b2334c4162a586c499e0ab41d12bd3`に固定。200–6000 Kの係数を同梱し外挿しません。サイクル入力の温度等にはさらに狭いソフト適用範囲があります。出典、抽出法、Apache-2.0のライセンス・NOTICEは`THIRD_PARTY.md`と`third_party/nasa_cea/`を参照。回転数は段平均径と組み合わせた負荷係数の算出に使用し、サイクル性能は変えません。
 
 既定入力は検討用の仮定です。既定NASAモデル・メタン・1.2 kg/sでは正味発電約143.958 kW、効率約15.3316%（LHV）、燃料約67.6054 kg/h。旧比熱一定モデルでは約138.723 kW、14.2764%です。モデル内部の計算値であり、実機との相関は未検証です。管理アプリのサンプルにあった「100 kW」は要求値で、自動的にその出力になる条件ではありません。
 
@@ -60,4 +71,4 @@ python cli.py --input examples/nasa_target_100kw_input.json --output result-100k
 
 全ケースのバックアップは、終了後に `data/cases.sqlite3` をコピー。JSON・DBは暗号化していません。ケースは追加保存で既存の結果を上書きしません。
 
-`python -m unittest -v test_cycle.py test_nasa.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。旧JSONは比熱一定として移行し、旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。
+`python -m unittest -v test_cycle.py test_nasa.py test_stages.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。

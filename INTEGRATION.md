@@ -1,6 +1,6 @@
 # 独立計算モジュールの入出力契約
 
-Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.2.0` / schema_version: `2`。
+Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.3.0` / schema_version: `3`。
 
 ## 呼出し
 
@@ -16,9 +16,9 @@ case = run_case(inputs)
 
 `model.default_input()` で完全な入力を取得し、`model.validate_input(input)` で検証。`engine.analyze(input)` は結果dict、`engine.run_case(input)` は実行メタデータ付きの交換用ケースを返します。計算エンジンはUI・DB・ネットワークを呼びません。入力を変更しません。
 
-すべてのparametersは有限の数値。パラメータ名に単位を含め、Pa・K・kg/s・W・J/kg・J/(kg K)を使用。効率・損失率は0〜1の小数。画面だけでkPa・kW・MJ/kg・%へ変換します。圧力比・燃空比は無次元。全圧は絶対圧、温度は全温（静止大気・低速排気境界を除く）。`shaft_speed_rpm` は記録用、計算結果に影響しません。
+すべてのparametersは有限の数値。パラメータ名に単位を含め、Pa・K・kg/s・W・J/kg・J/(kg K)を使用。効率・損失率は0〜1の小数。画面だけでkPa・kW・MJ/kg・%へ変換します。圧力比・燃空比は無次元。全圧は絶対圧、温度は全温（静止大気・低速排気境界を除く）。`shaft_speed_rpm` は任意の段平均径から周速・負荷係数を算出する際に使用します。サイクル性能には影響しません。
 
-入力は `schema_version, name, mode, parameters, context, thermodynamics`。
+入力は `schema_version, name, mode, parameters, context, thermodynamics, staging`。
 
 `thermodynamics = {model: "nasa9_frozen"|"constant_cp", fuel: "methane"|"gasturb_generic"|"gasturb_natural_gas"|"custom_ch", fuel_hydrogen_mass_fraction: 0..1}`。水素質量割合はcustom_ch時のみ使用し、残りは炭素です。燃料LHVはparametersの独立入力です。NASAモデルではlegacyのcp/R入力を計算に使用しませんが、交換用に維持・検証します。旧schema 1入力はconstant_cpへ正規化するため、従来の意味を維持します。旧module 0.1.0の交換ケースも入力を取り出して再計算できます。既定`default_input()`はNASA、`default_input("constant_cp")`は旧モデルです。
 
@@ -54,3 +54,11 @@ modeは `airflow` または `target_power`。入力の欠落・未知のパラ�
 ## 圧力比スイープ
 
 `engine.sweep(input, minimum, maximum, count)`。基準点の計算後空気流量を固定してairflowモードへ変換し、圧力比だけを変える。入力ハッシュと固定流量を返す。不成立点はnullと理由を返し、その他の点は継続する。機器の性能マップや回転数、形状による作動点の連続予測ではない。
+
+## 段構成と段間出力（schema 3）
+
+`staging`はcompressor/turbineを持つ。各機器は`{count: int(1..30), distribution: "pressure"|"work", weights: [positive_number]*count, mean_diameters_m: null|[positive_m]*count}`。重みは0.001〜1000、径は0.001〜20 m。APIでは配列を明示し、画面の空欄だけが均等重みへ変換される。全体性能は既存parametersで決まり、段構成はその後の熱力学的分解に使用する。詳細はSTAGING.md。
+
+`result.stage_results.compressor/turbine`に、一定ポリトロープ効率、指定/再構成した全体効率、全体圧力比、比仕事、総仕事率、段仕事率合計、`stages`と`states`を記録。各段は`stage`（1始まり）、`inlet/outlet`（全温・全圧・流量・cp/cv/γ/R/h等）、圧縮比/膨張比、正の比仕事、仕事率、機械伝達後仕事率、段ηtt、等エントロピー出口温度、仕事割合、対数圧力割合、エントロピー生成、径、周速、ψを含む。SI単位・有限数値、未指定の径/U/ψはnull。タービンの質量流量は燃料を含む。`states`は入口と各段出口のN+1個。
+
+入力ハッシュには段構成全体も含む。旧schema 1/2は各1段・対数圧力均等へ正規化し、元の物性モデルを維持する。モジュール0.1.0/0.2.0のケースJSONも入力を取り出して再計算する。旧版保存DBのレコードは変更せず、画面で開くと新しい版での再計算を要求する。

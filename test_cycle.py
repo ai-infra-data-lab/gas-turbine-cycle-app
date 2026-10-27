@@ -273,7 +273,7 @@ class APITests(unittest.TestCase):
     def test_nasa_http_default_and_legacy_input_migration(self):
         schema = json.loads(self.request("/api/schema")[1])
         self.assertEqual(schema["default"]["thermodynamics"]["model"], "nasa9_frozen")
-        self.assertEqual(schema["module_version"], "0.2.0")
+        self.assertEqual(schema["module_version"], "0.3.0")
         status, data, _ = self.request("/api/calculate", {"input": schema["default"]})
         self.assertEqual(status, 200)
         result = json.loads(data)["result"]
@@ -282,9 +282,26 @@ class APITests(unittest.TestCase):
         legacy = default_input("constant_cp")
         legacy["schema_version"] = 1
         del legacy["thermodynamics"]
+        del legacy["staging"]
         status, data, _ = self.request("/api/import", {"document": legacy})
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(data)["input"]["thermodynamics"]["model"], "constant_cp")
+
+    def test_multistage_http_save_import_and_invalid_weight_count(self):
+        inp = default_input()
+        inp["staging"]["compressor"].update(count=4, weights=[1, 1, 1, 1])
+        inp["staging"]["turbine"].update(count=3, distribution="work", weights=[4, 3.5, 2.5])
+        status, data, _ = self.request("/api/save", {"input": inp})
+        self.assertEqual(status, 200)
+        saved = json.loads(data)
+        self.assertEqual(len(saved["result"]["stage_results"]["compressor"]["stages"]), 4)
+        self.assertAlmostEqual(saved["result"]["stage_results"]["turbine"]["stages"][0]["work_fraction"], .4)
+        loaded = json.loads(self.request("/api/case?id="+saved["run_id"])[1])
+        self.assertEqual(loaded["input"]["staging"], saved["input"]["staging"])
+        imported = json.loads(self.request("/api/import", {"document": loaded})[1])
+        self.assertEqual(imported["input"]["staging"], loaded["input"]["staging"])
+        inp["staging"]["compressor"]["weights"] = [1]
+        self.assertEqual(self.request("/api/calculate", {"input": inp})[0], 400)
 
 
 if __name__ == "__main__":

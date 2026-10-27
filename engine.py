@@ -5,9 +5,11 @@ import uuid
 from datetime import datetime, timezone
 
 if __package__:
+    from .stages import allocate
     from .model import InputError, MODULE_ID, MODULE_VERSION, input_hash, validate_input
     from .thermo import ConstantGas, air, products, provenance, properties_at, solve_temperature, stoichiometric_fuel_air_ratio, hydrogen_fraction
 else:
+    from stages import allocate
     from model import InputError, MODULE_ID, MODULE_VERSION, input_hash, validate_input
     from thermo import ConstantGas, air, products, provenance, properties_at, solve_temperature, stoichiometric_fuel_air_ratio, hydrogen_fraction
 
@@ -95,7 +97,7 @@ def analyze(raw):
     balance = fuel_heat - (shaft + mechanical_loss + combustor_loss + exhaust_energy)
     electric_balance = (fuel_heat - (net + v["auxiliary_power_w"] + generator_loss + mechanical_loss + combustor_loss + exhaust_energy)) if generating else None
     warnings = [("NASA9温度依存物性・乾燥空気・希薄完全燃焼の凍結組成です。燃焼の化学平衡・解離・湿度・冷却抽気は未対応で、GasTurbとの数値一致は未検証です。" if nasa else "比熱一定の旧モデルです。温度依存物性・燃料組成・解離・冷却抽気・性能マップは含みません。"),
-                "回転数は記録用です。回転数の変更による性能変化や軸系マッチングは計算しません。"]
+                "回転数は任意の段平均径と組み合わせた周速・負荷係数の算出に用います。サイクル性能の変化や軸系マッチングは計算しません。"]
     if not generating:
         warnings.append("圧縮機動力を賄えず、発電運転が成立しない計算条件です。発電量・発電効率は未定義です。")
     elif net <= 0:
@@ -124,11 +126,13 @@ def analyze(raw):
                 "fuel_element_mass_fractions": {"C": 1-hydrogen_fraction(settings), "H": hydrogen_fraction(settings)} if nasa else None,
                 "stoichiometric_fuel_air_ratio": stoichiometric_fuel_air_ratio(settings) if nasa else None,
                 "equivalence_ratio": f / stoichiometric_fuel_air_ratio(settings) if nasa else None}
-    result = {"schema_version": 2, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+    stage_results = {"compressor": allocate(airmix, t1, p1, t2, p2, ma, v["compressor_efficiency"], inp["staging"]["compressor"], "compressor", v["shaft_speed_rpm"]),
+                     "turbine": allocate(gasmix, t3, p3, t4, p4, mg, v["turbine_efficiency"], inp["staging"]["turbine"], "turbine", v["shaft_speed_rpm"], v["mechanical_efficiency"])}
+    result = {"schema_version": 3, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
               "status": "success" if generating and net > 0 else "non_generating",
               "model": "nasa9_frozen_complete_combustion" if nasa else "constant_cp_ideal_gas_fuel_mass", "enthalpy_reference_temperature_k": T_REF_K,
               "thermodynamics": metadata,
-              "metrics": metrics, "stations": stations,
+              "metrics": metrics, "stations": stations, "stage_results": stage_results,
               "energy_balance": {"combustion_loss_w": combustor_loss, "mechanical_loss_w": mechanical_loss,
                                  "generator_loss_w": generator_loss, "auxiliary_power_w": v["auxiliary_power_w"],
                                  "exhaust_net_sensible_energy_w": exhaust_energy,
@@ -143,7 +147,7 @@ def run_case(raw):
     inp = validate_input(raw)
     started = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
     result = analyze(inp)
-    return {"format": "gas-turbine-cycle-case", "schema_version": 2, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+    return {"format": "gas-turbine-cycle-case", "schema_version": 3, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
             "run_id": str(uuid.uuid4()), "started_at": started, "completed_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
             "input_hash": input_hash(inp), "input": inp, "result": result}
 

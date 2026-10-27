@@ -28,7 +28,7 @@ def read_input_file(data):
     if not isinstance(data, dict):
         raise ValueError("JSONオブジェクトを指定してください。")
     if data.get("format") == "gas-turbine-cycle-case":
-        if type(data.get("schema_version")) is not int or data.get("schema_version") not in (1, 2) or data.get("module_id") != MODULE_ID or data.get("module_version") not in ("0.1.0", MODULE_VERSION):
+        if type(data.get("schema_version")) is not int or data.get("schema_version") not in (1, 2, 3) or data.get("module_id") != MODULE_ID or data.get("module_version") not in ("0.1.0", "0.2.0", MODULE_VERSION):
             raise ValueError("このバージョンに対応した計算ケースを選択してください。")
         data = data.get("input")
     return validate_input(data)

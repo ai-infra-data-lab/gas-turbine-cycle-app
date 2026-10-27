@@ -1,0 +1,108 @@
+{
+  "reference": "Cantera SP/HP and entropy state functions",
+  "cantera_version": "3.2.0",
+  "dataset_id": "nasa-cea-985fd33368b2-nasa9-5species",
+  "states_checked": 40,
+  "cases": [
+    {
+      "component": "compressor",
+      "distribution": "pressure",
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "overall_efficiency": 0.7800000000000005,
+      "polytropic_efficiency": 0.8163580968381455
+    },
+    {
+      "component": "turbine",
+      "distribution": "pressure",
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "overall_efficiency": 0.85,
+      "polytropic_efficiency": 0.828540475360518
+    },
+    {
+      "component": "compressor",
+      "distribution": "pressure",
+      "weights": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overall_efficiency": 0.7800000000000005,
+      "polytropic_efficiency": 0.8163580968381455
+    },
+    {
+      "component": "turbine",
+      "distribution": "pressure",
+      "weights": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overall_efficiency": 0.85,
+      "polytropic_efficiency": 0.828540475360518
+    },
+    {
+      "component": "compressor",
+      "distribution": "work",
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "overall_efficiency": 0.7800000000000005,
+      "polytropic_efficiency": 0.8163580968381455
+    },
+    {
+      "component": "turbine",
+      "distribution": "work",
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "overall_efficiency": 0.85,
+      "polytropic_efficiency": 0.828540475360518
+    },
+    {
+      "component": "compressor",
+      "distribution": "work",
+      "weights": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overall_efficiency": 0.7800000000000005,
+      "polytropic_efficiency": 0.8163580968381455
+    },
+    {
+      "component": "turbine",
+      "distribution": "work",
+      "weights": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overall_efficiency": 0.85,
+      "polytropic_efficiency": 0.828540475360518
+    }
+  ],
+  "maximum_temperature_error_k": 7.890828328527277e-07,
+  "maximum_pressure_relative_error": 3.6342080821444427e-09,
+  "maximum_stage_efficiency_absolute_error": 1.8272912960526355e-08,
+  "limitations": "Same NASA coefficients and overall endpoints/composition; independently verifies allocation-path inversion and finite stage efficiencies, not aerodynamic validity or an actual engine stage distribution."
+}
