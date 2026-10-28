@@ -1,0 +1,75 @@
+{
+  "reference": "Cantera 3.2.0 HP/SP and entropy static-total conversion",
+  "dataset_id": "nasa-cea-985fd33368b2-nasa9-5species",
+  "elements_checked": 36,
+  "maximum_temperature_error_k": 2.50365985721146e-07,
+  "maximum_pressure_relative_error": 7.233477703032992e-10,
+  "maximum_endpoint_pressure_relative_error": 6.986497026747214e-10,
+  "cases": [
+    {
+      "fuel": "methane",
+      "stage_count": 1,
+      "machine": "compressor",
+      "reference_exit_Tt_k": 451.01853201564523,
+      "reference_exit_Pt_pa": 381184.6502031018,
+      "endpoint_pressure_relative_error": 5.328229586834151e-10
+    },
+    {
+      "fuel": "methane",
+      "stage_count": 1,
+      "machine": "turbine",
+      "reference_exit_Tt_k": 853.8170012607075,
+      "reference_exit_Pt_pa": 103392.85714284478,
+      "endpoint_pressure_relative_error": 2.4151655367616073e-13
+    },
+    {
+      "fuel": "methane",
+      "stage_count": 2,
+      "machine": "compressor",
+      "reference_exit_Tt_k": 459.91922861761344,
+      "reference_exit_Pt_pa": 381184.6502663333,
+      "endpoint_pressure_relative_error": 6.986497026747214e-10
+    },
+    {
+      "fuel": "methane",
+      "stage_count": 2,
+      "machine": "turbine",
+      "reference_exit_Tt_k": 851.9478376234205,
+      "reference_exit_Pt_pa": 103392.85714289438,
+      "endpoint_pressure_relative_error": 3.429929145156558e-13
+    },
+    {
+      "fuel": "gasturb_generic",
+      "stage_count": 1,
+      "machine": "compressor",
+      "reference_exit_Tt_k": 451.01853201564523,
+      "reference_exit_Pt_pa": 381184.6502031018,
+      "endpoint_pressure_relative_error": 5.328229586834151e-10
+    },
+    {
+      "fuel": "gasturb_generic",
+      "stage_count": 1,
+      "machine": "turbine",
+      "reference_exit_Tt_k": 853.1039349824604,
+      "reference_exit_Pt_pa": 103392.85714284192,
+      "endpoint_pressure_relative_error": 3.096366072772115e-15
+    },
+    {
+      "fuel": "gasturb_generic",
+      "stage_count": 2,
+      "machine": "compressor",
+      "reference_exit_Tt_k": 459.91922861761344,
+      "reference_exit_Pt_pa": 381184.6502663333,
+      "endpoint_pressure_relative_error": 6.986497026747214e-10
+    },
+    {
+      "fuel": "gasturb_generic",
+      "stage_count": 2,
+      "machine": "turbine",
+      "reference_exit_Tt_k": 851.2368345456922,
+      "reference_exit_Pt_pa": 103392.85714289974,
+      "endpoint_pressure_relative_error": 3.311704258741431e-13
+    }
+  ],
+  "limitations": "Same NASA coefficients, gas composition, fuel-air ratio and solved rotor pressure ratios. Independently propagates rotor and stationary states and checks final pressure closure; not a separate aerodynamic model, geometry validation or experiment."
+}

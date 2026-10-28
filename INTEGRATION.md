@@ -1,6 +1,6 @@
 # 独立計算モジュールの入出力契約
 
-Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.3.0` / schema_version: `3`。
+Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.4.0` / schema_version: `4`。
 
 ## 呼出し
 
@@ -18,7 +18,7 @@ case = run_case(inputs)
 
 すべてのparametersは有限の数値。パラメータ名に単位を含め、Pa・K・kg/s・W・J/kg・J/(kg K)を使用。効率・損失率は0〜1の小数。画面だけでkPa・kW・MJ/kg・%へ変換します。圧力比・燃空比は無次元。全圧は絶対圧、温度は全温（静止大気・低速排気境界を除く）。`shaft_speed_rpm` は任意の段平均径から周速・負荷係数を算出する際に使用します。サイクル性能には影響しません。
 
-入力は `schema_version, name, mode, parameters, context, thermodynamics, staging`。
+入力は `schema_version, name, mode, parameters, context, thermodynamics, staging, elements`。
 
 `thermodynamics = {model: "nasa9_frozen"|"constant_cp", fuel: "methane"|"gasturb_generic"|"gasturb_natural_gas"|"custom_ch", fuel_hydrogen_mass_fraction: 0..1}`。水素質量割合はcustom_ch時のみ使用し、残りは炭素です。燃料LHVはparametersの独立入力です。NASAモデルではlegacyのcp/R入力を計算に使用しませんが、交換用に維持・検証します。旧schema 1入力はconstant_cpへ正規化するため、従来の意味を維持します。旧module 0.1.0の交換ケースも入力を取り出して再計算できます。既定`default_input()`はNASA、`default_input("constant_cp")`は旧モデルです。
 
@@ -62,3 +62,15 @@ modeは `airflow` または `target_power`。入力の欠落・未知のパラ�
 `result.stage_results.compressor/turbine`に、一定ポリトロープ効率、指定/再構成した全体効率、全体圧力比、比仕事、総仕事率、段仕事率合計、`stages`と`states`を記録。各段は`stage`（1始まり）、`inlet/outlet`（全温・全圧・流量・cp/cv/γ/R/h等）、圧縮比/膨張比、正の比仕事、仕事率、機械伝達後仕事率、段ηtt、等エントロピー出口温度、仕事割合、対数圧力割合、エントロピー生成、径、周速、ψを含む。SI単位・有限数値、未指定の径/U/ψはnull。タービンの質量流量は燃料を含む。`states`は入口と各段出口のN+1個。
 
 入力ハッシュには段構成全体も含む。旧schema 1/2は各1段・対数圧力均等へ正規化し、元の物性モデルを維持する。モジュール0.1.0/0.2.0のケースJSONも入力を取り出して再計算する。旧版保存DBのレコードは変更せず、画面で開くと新しい版での再計算を要求する。
+
+## 要素モデル（schema 4）
+
+`elements.compressor/turbine = {enabled: bool, inlet_velocity_m_s: number, stages: [stage_config]}`。有効時はstagingの段数と配列長が一致し、distribution="pressure"が必要。無効時も再利用用設定を保持・型検証する。`model.element_stage(kind)`で1段の完全な設定を取得できる。
+
+段設定は`rotor_efficiency, rotor_exit_velocity_m_s, diffuser`と、圧縮機の`return_channel`またはタービンの`nozzle`。静止要素の設定は`{enabled, model: "cp"|"loss", coefficient, exit_velocity_m_s}`。Vは1〜600 m/s、ロータηは0.5〜1、Cpは−5〜5、ζは0〜10。要素入口/出口でM<0.95、NASA適用範囲、正の圧力・温度、静止要素で全圧が増加しないことを検証する。
+
+有効時はparametersのcompressor_efficiency/turbine_efficiencyを計算に使用しない。結果metricsの`compressor_effective_efficiency/turbine_effective_efficiency`が実際の全体ηtt。`stage_results`のmethod="coefficient_element_network"、specified_overall_isentropic_efficiency=null、recovered_overall_isentropic_efficiencyが実際の値。polytropic_efficiencyは全体端点からの等価値で、一定ηp経路は仮定しない。
+
+`stage_results.*.elements[]`はstage、name、kind（rotor/stationary）、inlet/outlet、specific_work_j_kg、power_w、transmitted_power_w、係数指定/実際のCp/ζ、全圧損失、ロータ効率/圧力比、エントロピー生成を持つ。ロータではCp/ζ/全圧損失をnullとし、圧力上昇を損失と混同しない。静止要素では仕事を0とする。各状態には静温/静圧、絶対流速、密度、動圧、Mach、流量、換算面積を追加する。元素構成/質量は各機器内で固定。
+
+旧schema 1/2/3は従来モデルとして正規化し、要素モードを無効にする。v0.1.0〜0.3.0の計算ケースも入力を取り出して再計算できる。ハッシュに要素設定全体を含み、データ/計算モデル版も保存する。式と制約はELEMENTS.md。

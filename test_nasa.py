@@ -120,7 +120,7 @@ class NasaTests(unittest.TestCase):
         legacy = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(legacy["schema_version"], 1)
         migrated = validate_input(legacy)
-        self.assertEqual(migrated["schema_version"], 3)
+        self.assertEqual(migrated["schema_version"], 4)
         self.assertEqual(migrated["thermodynamics"]["model"], "constant_cp")
         self.assertAlmostEqual(analyze(migrated)["metrics"]["net_electric_power_w"], 138723.25030905195, places=6)
         case = json.loads((path.parent / "flow_result.json").read_text(encoding="utf-8"))
@@ -129,7 +129,7 @@ class NasaTests(unittest.TestCase):
     def test_model_fuel_and_dataset_are_in_result_and_input_hash(self):
         inp = default_input()
         case = run_case(inp)
-        self.assertEqual(case["schema_version"], 3)
+        self.assertEqual(case["schema_version"], 4)
         self.assertEqual(case["result"]["thermodynamics"]["dataset"]["source_commit"], DATA["source_commit"])
         before = input_hash(inp)
         inp["thermodynamics"]["fuel"] = "gasturb_generic"

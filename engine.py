@@ -5,10 +5,12 @@ import uuid
 from datetime import datetime, timezone
 
 if __package__:
+    from .elements import solve_train, apply_mass
     from .stages import allocate
     from .model import InputError, MODULE_ID, MODULE_VERSION, input_hash, validate_input
     from .thermo import ConstantGas, air, products, provenance, properties_at, solve_temperature, stoichiometric_fuel_air_ratio, hydrogen_fraction
 else:
+    from elements import solve_train, apply_mass
     from stages import allocate
     from model import InputError, MODULE_ID, MODULE_VERSION, input_hash, validate_input
     from thermo import ConstantGas, air, products, provenance, properties_at, solve_temperature, stoichiometric_fuel_air_ratio, hydrogen_fraction
@@ -40,6 +42,13 @@ def analyze(raw):
         t2s = t1 * (p2 / p1) ** (airmix.r / airmix.constant_cp)
         t2 = t1 + (t2s - t1) / v["compressor_efficiency"]
         h2 = airmix.h(t2)
+    compressor_train = None
+    if inp["elements"]["compressor"]["enabled"]:
+        compressor_train = solve_train(airmix, t1, p1, p2, inp["staging"]["compressor"], inp["elements"]["compressor"], "compressor", v["shaft_speed_rpm"])
+        t2 = compressor_train["states"][-1]["total_temperature_k"]
+        p2 = compressor_train["states"][-1]["total_pressure_pa"]
+        p3 = p2*(1-v["combustor_pressure_loss"])
+        h2 = airmix.h(t2)
     if t3 <= t2:
         raise InputError("タービン入口全温が圧縮機出口全温以下です。入口全温を上げるか圧力比を下げてください。")
     if nasa:
@@ -70,6 +79,13 @@ def analyze(raw):
             raise InputError("燃空比が簡易モデルの範囲（0より大きく0.2以下）を外れています。")
         t4s = t3 * (p4 / p3) ** (gasmix.r / gasmix.constant_cp)
         t4 = t3 - v["turbine_efficiency"] * (t3 - t4s)
+    turbine_train = None
+    if inp["elements"]["turbine"]["enabled"]:
+        turbine_train = solve_train(gasmix, t3, p3, p4, inp["staging"]["turbine"], inp["elements"]["turbine"], "turbine", v["shaft_speed_rpm"])
+        t4 = turbine_train["states"][-1]["total_temperature_k"]
+        p4 = turbine_train["states"][-1]["total_pressure_pa"]
+    effective_eta_c = (airmix.h(t2s)-airmix.h(t1))/(airmix.h(t2)-airmix.h(t1))
+    effective_eta_t = (gasmix.h(t3)-gasmix.h(t4))/(gasmix.h(t3)-gasmix.h(t4s))
     wc_specific = airmix.h(t2) - airmix.h(t1)
     wt_specific = (1 + f) * (gasmix.h(t3) - gasmix.h(t4))
     shaft_specific = v["mechanical_efficiency"] * wt_specific - wc_specific
@@ -112,6 +128,7 @@ def analyze(raw):
                "heat_rate_kj_kwh": fuel_heat / net * 3600 if generating and net > 0 else None,
                "specific_fuel_consumption_kg_kwh": mf / net * 3.6e6 if generating and net > 0 else None,
                "exhaust_temperature_k": t4, "turbine_expansion_ratio": p3 / p4,
+               "compressor_effective_efficiency": effective_eta_c, "turbine_effective_efficiency": effective_eta_t,
                "back_work_ratio": wc / (wt * v["mechanical_efficiency"]), "gamma_air": airmix.gamma(t1), "gamma_gas": gasmix.gamma(t3),
                "compressor_isentropic_exit_temperature_k": t2s, "turbine_isentropic_exit_temperature_k": t4s}
     stations = []
@@ -128,7 +145,15 @@ def analyze(raw):
                 "equivalence_ratio": f / stoichiometric_fuel_air_ratio(settings) if nasa else None}
     stage_results = {"compressor": allocate(airmix, t1, p1, t2, p2, ma, v["compressor_efficiency"], inp["staging"]["compressor"], "compressor", v["shaft_speed_rpm"]),
                      "turbine": allocate(gasmix, t3, p3, t4, p4, mg, v["turbine_efficiency"], inp["staging"]["turbine"], "turbine", v["shaft_speed_rpm"], v["mechanical_efficiency"])}
-    result = {"schema_version": 3, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+    if compressor_train:
+        stage_results["compressor"] = apply_mass(compressor_train, ma)
+    if turbine_train:
+        stage_results["turbine"] = apply_mass(turbine_train, mg, v["mechanical_efficiency"])
+    for key, start, end in (("compressor", 1, 2), ("turbine", 3, 4)):
+        if inp["elements"][key]["enabled"]:
+            for station_index, local in ((start, stage_results[key]["states"][0]), (end, stage_results[key]["states"][-1])):
+                stations[station_index].update({k: value for k, value in local.items() if k not in ("id", "name", "fluid")})
+    result = {"schema_version": 4, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
               "status": "success" if generating and net > 0 else "non_generating",
               "model": "nasa9_frozen_complete_combustion" if nasa else "constant_cp_ideal_gas_fuel_mass", "enthalpy_reference_temperature_k": T_REF_K,
               "thermodynamics": metadata,
@@ -147,7 +172,7 @@ def run_case(raw):
     inp = validate_input(raw)
     started = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
     result = analyze(inp)
-    return {"format": "gas-turbine-cycle-case", "schema_version": 3, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+    return {"format": "gas-turbine-cycle-case", "schema_version": 4, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
             "run_id": str(uuid.uuid4()), "started_at": started, "completed_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
             "input_hash": input_hash(inp), "input": inp, "result": result}
 

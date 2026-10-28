@@ -1,4 +1,4 @@
-# Cycle Studio 0.3 — 一軸シンプルサイクル
+# Cycle Studio 0.4 — 一軸シンプルサイクル
 
 定常・開放シンプルサイクルの設計点計算を行う独立アプリ。Python 3.10以上の標準ライブラリだけで動作し、インストール・インターネット接続・外部CDN・アカウントは不要です。
 
@@ -27,7 +27,17 @@ Python 3.10以上が必要です。追加Pythonパッケージのインストー
 - 入力・結果JSON、状態表CSV、保存ケースの読込と比較。入力変更後は結果の保存・書出しを無効化。
 - `data/cases.sqlite3` に明示保存。既存アプリ・管理DBは変更しない。
 
-## 複数段の段間性能（v0.3）
+## 要素係数による詳細サイクル（v0.4）
+
+圧縮機はインペラー・ディフューザー・リターンチャネル、タービンはノズル・ロータ・出口ディフューザーを各段に設定できます。Cp（静圧回復）またはζ（全圧損失）と出口流速を入力。NASA温度依存物性で全温/静温・全圧/静圧・密度・動圧・マッハ数を計算します。
+
+要素モードは全体全圧比・対数段圧力配分を維持し、ロータ効率と静止要素損失から必要動力・実際の全体効率を再計算します。従来の全体効率欄は未使用。全体モードは従来どおりです。係数を形状から予測するミーンライン/CFDではありません。
+
+[ELEMENTS.md](ELEMENTS.md)に係数定義・式・操作手順・2段の数値例・適用範囲を掲載。画面の「要素別性能・係数」→「2段の要素計算サンプルを設定」→再計算→「要素別性能」で確認できます。サンプルは操作説明用仮定・実機未検証です。
+
+`python cli.py --input examples/elements_input.json --output result.json`
+
+## 複数段の段間性能（全体モード・v0.3互換）
 
 圧縮機・タービンを各1〜30段に配分し、「段間性能」で入口/出口全温・全圧、段圧力比、比仕事、動力、段等エントロピー効率、cp/γ、仕事・対数圧力配分を表示します。全体効率と端点を固定した一定ポリトロープ効率の経路上の配分です。
 
@@ -71,4 +81,4 @@ python cli.py --input examples/nasa_target_100kw_input.json --output result-100k
 
 全ケースのバックアップは、終了後に `data/cases.sqlite3` をコピー。JSON・DBは暗号化していません。ケースは追加保存で既存の結果を上書きしません。
 
-`python -m unittest -v test_cycle.py test_nasa.py test_stages.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。
+`python -m unittest -v test_cycle.py test_nasa.py test_stages.py test_elements.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。schema 3は段構成を維持し、schema 1〜3はいずれも要素モードなしで移行します。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。

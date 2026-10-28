@@ -93,7 +93,7 @@ class StageTests(unittest.TestCase):
         for file in ("flow_input.json", "nasa_methane_input.json", "nasa_methane_result.json"):
             raw = json.loads((Path(__file__).parent/"examples"/file).read_text(encoding="utf-8"))
             migrated = read_input_file(raw)
-            self.assertEqual(migrated["schema_version"], 3)
+            self.assertEqual(migrated["schema_version"], 4)
             self.assertEqual(migrated["staging"]["compressor"]["count"], 1)
             expected = "constant_cp" if file == "flow_input.json" else "nasa9_frozen"
             self.assertEqual(migrated["thermodynamics"]["model"], expected)

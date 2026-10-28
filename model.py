@@ -5,8 +5,8 @@ import math
 import uuid
 
 MODULE_ID = "gt.cycle.simple_single_shaft"
-MODULE_VERSION = "0.3.0"
-SCHEMA_VERSION = 3
+MODULE_VERSION = "0.4.0"
+SCHEMA_VERSION = 4
 
 # All limits are software applicability bounds, not equipment operating limits.
 # key, label, UI unit, UI multiplier, SI minimum, SI maximum, SI default, group
@@ -40,8 +40,9 @@ class InputError(ValueError):
 
 
 def default_input(thermo_model="nasa9_frozen"):
-    return {"schema_version": 3, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
+    return {"schema_version": 4, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
             "staging": default_staging(),
+            "elements": default_elements(),
             "thermodynamics": {"model": thermo_model, "fuel": "methane", "fuel_hydrogen_mass_fraction": .25},
             "context": {"project_id": None, "component_id": None, "source_revision": None}}
 
@@ -49,6 +50,58 @@ def default_input(thermo_model="nasa9_frozen"):
 def default_staging():
     return {k: {"count": 1, "distribution": "pressure", "weights": [1.0], "mean_diameters_m": None}
             for k in ("compressor", "turbine")}
+
+
+def element_stage(kind):
+    def passive(model, coefficient, velocity):
+        return {"enabled": True, "model": model, "coefficient": coefficient, "exit_velocity_m_s": velocity}
+    if kind == "compressor":
+        return {"rotor_efficiency": .84, "rotor_exit_velocity_m_s": 200.,
+                "diffuser": passive("cp", .6, 100.), "return_channel": passive("loss", .15, 60.)}
+    return {"rotor_efficiency": .9, "rotor_exit_velocity_m_s": 100.,
+            "nozzle": passive("loss", .04, 200.), "diffuser": passive("loss", .1, 60.)}
+
+
+def default_elements():
+    return {kind: {"enabled": False, "inlet_velocity_m_s": 60., "stages": [element_stage(kind)]}
+            for kind in ("compressor", "turbine")}
+
+
+def validate_elements(raw, staging):
+    if not isinstance(raw, dict) or set(raw) != {"compressor", "turbine"}:
+        raise InputError("要素モデルはcompressorとturbineを指定してください。")
+    def number(value, low, high, label):
+        if type(value) not in (int, float) or not math.isfinite(value) or not low <= value <= high:
+            raise InputError(f"{label}は{low}〜{high}の有限数値にしてください。")
+        return float(value)
+    clean = {}
+    for kind, label in (("compressor", "圧縮機"), ("turbine", "タービン")):
+        item = raw[kind]
+        if not isinstance(item, dict) or set(item) != {"enabled", "inlet_velocity_m_s", "stages"} or type(item["enabled"]) is not bool:
+            raise InputError(f"{label}の要素モデル指定が不正です。")
+        rows = item["stages"]
+        if not isinstance(rows, list) or not 1 <= len(rows) <= 30:
+            raise InputError(f"{label}の要素設定は1〜30段分必要です。")
+        if item["enabled"] and (len(rows) != staging[kind]["count"] or staging[kind]["distribution"] != "pressure"):
+            raise InputError(f"{label}の要素モードは、段数分の設定と対数圧力比配分が必要です。")
+        velocity = number(item["inlet_velocity_m_s"], 1, 600, label+"入口流速 m/s")
+        stages = []
+        for index, row in enumerate(rows):
+            prefix = f"{label}{index+1}段"
+            if not isinstance(row, dict) or set(row) != set(element_stage(kind)):
+                raise InputError(prefix+"の要素設定が不正です。")
+            stage = {"rotor_efficiency": number(row["rotor_efficiency"], .5, 1, prefix+"ロータ全圧効率"),
+                     "rotor_exit_velocity_m_s": number(row["rotor_exit_velocity_m_s"], 1, 600, prefix+"ロータ出口流速")}
+            for key in ("diffuser", "return_channel" if kind == "compressor" else "nozzle"):
+                part = row[key]
+                if not isinstance(part, dict) or set(part) != {"enabled", "model", "coefficient", "exit_velocity_m_s"} or type(part["enabled"]) is not bool or part["model"] not in ("cp", "loss"):
+                    raise InputError(prefix+"の"+key+"係数モデルが不正です。")
+                stage[key] = {"enabled": part["enabled"], "model": part["model"],
+                              "coefficient": number(part["coefficient"], -5 if part["model"] == "cp" else 0, 5 if part["model"] == "cp" else 10, prefix+"の"+key+"係数"),
+                              "exit_velocity_m_s": number(part["exit_velocity_m_s"], 1, 600, prefix+"の"+key+"出口流速")}
+            stages.append(stage)
+        clean[kind] = {"enabled": item["enabled"], "inlet_velocity_m_s": velocity, "stages": stages}
+    return clean
 
 
 def validate_staging(raw):
@@ -76,13 +129,16 @@ def validate_staging(raw):
 
 
 def validate_input(raw):
-    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") not in (1, 2, 3):
-        raise InputError("入力のschema_versionは1、2、3を指定してください。")
-    if set(raw) - {"schema_version", "mode", "name", "parameters", "context", "thermodynamics", "staging"}:
+    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") not in (1, 2, 3, 4):
+        raise InputError("入力のschema_versionは1、2、3、4を指定してください。")
+    if set(raw) - {"schema_version", "mode", "name", "parameters", "context", "thermodynamics", "staging", "elements"}:
         raise InputError("未対応の入力フィールドがあります。")
     if raw["schema_version"] < 3 and "staging" in raw:
         raise InputError("段構成を追加する場合はschema_version=3にしてください。")
-    staging = validate_staging(raw.get("staging") if raw["schema_version"] == 3 else default_staging())
+    staging = validate_staging(raw.get("staging") if raw["schema_version"] >= 3 else default_staging())
+    if raw["schema_version"] < 4 and "elements" in raw:
+        raise InputError("要素モデルを追加する場合はschema_version=4にしてください。")
+    elements = validate_elements(raw.get("elements") if raw["schema_version"] == 4 else default_elements(), staging)
     settings = raw.get("thermodynamics")
     if raw["schema_version"] == 1:
         if settings is not None:
@@ -130,7 +186,7 @@ def validate_input(raw):
     refs["source_revision"] = rev
     if (refs["component_id"] is not None or rev is not None) and refs["project_id"] is None:
         raise InputError("部品・リビジョンを指定する場合はproject_idも必要です。")
-    return {"schema_version": 3, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs, "thermodynamics": settings, "staging": staging}
+    return {"schema_version": 4, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs, "thermodynamics": settings, "staging": staging, "elements": elements}
 
 
 def input_hash(value):
