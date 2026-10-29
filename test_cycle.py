@@ -273,7 +273,7 @@ class APITests(unittest.TestCase):
     def test_nasa_http_default_and_legacy_input_migration(self):
         schema = json.loads(self.request("/api/schema")[1])
         self.assertEqual(schema["default"]["thermodynamics"]["model"], "nasa9_frozen")
-        self.assertEqual(schema["module_version"], "0.4.0")
+        self.assertEqual(schema["module_version"], "0.5.0")
         status, data, _ = self.request("/api/calculate", {"input": schema["default"]})
         self.assertEqual(status, 200)
         result = json.loads(data)["result"]
@@ -284,6 +284,7 @@ class APITests(unittest.TestCase):
         del legacy["thermodynamics"]
         del legacy["staging"]
         del legacy["elements"]
+        del legacy["cooling"]
         status, data, _ = self.request("/api/import", {"document": legacy})
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(data)["input"]["thermodynamics"]["model"], "constant_cp")
@@ -319,6 +320,23 @@ class APITests(unittest.TestCase):
         self.assertEqual(loaded["result"]["stage_results"], saved["result"]["stage_results"])
         inp["elements"]["compressor"]["stages"][0]["diffuser"]["coefficient"] = 2
         self.assertEqual(self.request("/api/calculate", {"input": inp})[0], 400)
+
+    def test_cooling_http_save_import_and_supply_pressure_error(self):
+        from test_cooling import sample
+        inp=sample()
+        status,body,_=self.request("/api/save",{"input":inp})
+        self.assertEqual(status,200)
+        saved=json.loads(body)
+        self.assertAlmostEqual(saved["result"]["metrics"]["cooling_air_mass_flow_kg_s"],.084)
+        self.assertLess(abs(saved["result"]["energy_balance"]["electric_balance_residual_w"]),2e-6)
+        imported=json.loads(self.request("/api/import",{"document":saved})[1])
+        self.assertEqual(imported["input"]["cooling"],saved["input"]["cooling"])
+        loaded=json.loads(self.request("/api/case?id="+saved["run_id"])[1])
+        self.assertEqual(loaded["result"]["cooling"],saved["result"]["cooling"])
+        inp["cooling"]["circuits"][0]["pressure_loss_fraction"]=.5
+        status,body,_=self.request("/api/calculate",{"input":inp})
+        self.assertEqual(status,400)
+        self.assertIn("供給全圧",json.loads(body)["error"])
 
 
 if __name__ == "__main__":

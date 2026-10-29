@@ -1,6 +1,6 @@
 # 独立計算モジュールの入出力契約
 
-Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.4.0` / schema_version: `4`。
+Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.5.0` / schema_version: `5`。
 
 ## 呼出し
 
@@ -18,7 +18,7 @@ case = run_case(inputs)
 
 すべてのparametersは有限の数値。パラメータ名に単位を含め、Pa・K・kg/s・W・J/kg・J/(kg K)を使用。効率・損失率は0〜1の小数。画面だけでkPa・kW・MJ/kg・%へ変換します。圧力比・燃空比は無次元。全圧は絶対圧、温度は全温（静止大気・低速排気境界を除く）。`shaft_speed_rpm` は任意の段平均径から周速・負荷係数を算出する際に使用します。サイクル性能には影響しません。
 
-入力は `schema_version, name, mode, parameters, context, thermodynamics, staging, elements`。
+入力は `schema_version, name, mode, parameters, context, thermodynamics, staging, elements, cooling`。
 
 `thermodynamics = {model: "nasa9_frozen"|"constant_cp", fuel: "methane"|"gasturb_generic"|"gasturb_natural_gas"|"custom_ch", fuel_hydrogen_mass_fraction: 0..1}`。水素質量割合はcustom_ch時のみ使用し、残りは炭素です。燃料LHVはparametersの独立入力です。NASAモデルではlegacyのcp/R入力を計算に使用しませんが、交換用に維持・検証します。旧schema 1入力はconstant_cpへ正規化するため、従来の意味を維持します。旧module 0.1.0の交換ケースも入力を取り出して再計算できます。既定`default_input()`はNASA、`default_input("constant_cp")`は旧モデルです。
 
@@ -74,3 +74,15 @@ modeは `airflow` または `target_power`。入力の欠落・未知のパラ�
 `stage_results.*.elements[]`はstage、name、kind（rotor/stationary）、inlet/outlet、specific_work_j_kg、power_w、transmitted_power_w、係数指定/実際のCp/ζ、全圧損失、ロータ効率/圧力比、エントロピー生成を持つ。ロータではCp/ζ/全圧損失をnullとし、圧力上昇を損失と混同しない。静止要素では仕事を0とする。各状態には静温/静圧、絶対流速、密度、動圧、Mach、流量、換算面積を追加する。元素構成/質量は各機器内で固定。
 
 旧schema 1/2/3は従来モデルとして正規化し、要素モードを無効にする。v0.1.0〜0.3.0の計算ケースも入力を取り出して再計算できる。ハッシュに要素設定全体を含み、データ/計算モデル版も保存する。式と制約はELEMENTS.md。
+
+## 冷却（schema 5）
+
+`cooling={enabled, temperature_basis: "combustor_exit"|"first_rotor_inlet", combustor_exit_limit_k, circuits:[]}`。流路テンプレートは`model.cooling_circuit()`。各流路はname、source_stage、fraction（入口空気基準）、target_stage、injection（before_nozzle/before_rotor/after_rotor/after_diffuser）、pressure_loss_fraction、heat_j_kg（外部熱）、mix_pressure_loss_fraction、required_pressure_margin、mixed_velocity_m_sを持つ。有効かつ正流量時はNASA物性・タービン要素モードを必須とする。詳細はCOOLING.md。
+
+`result.cooling`に供給流路、外部熱、各質量流量、温度基準、主流/冷却の等エントロピー仕事ポテンシャル、効率定義を保存。metricsに燃焼器空気/冷却流量、燃焼器出口/1段目ロータ入口温度、燃焼器空気基準燃空比、熱力学効率、総入熱基準発電効率を追加。従来fuel_air_ratioは入口空気基準を維持。
+
+冷却タービンのmethod="cooled_element_network"。単一入口の全体ηttと等価ηpはnull、thermodynamic_efficiencyを別記。段内混合のある段ηttもnull。各状態/段/要素の実mass_flow_kg_sとpower_wを使い、一定流量で仕事を再構成しない。specific_work_j_kgは段/要素の入口質量基準、work_per_inlet_air_j_kgは圧縮機入口空気基準。エントロピー流量生成はentropy_generation_w_k。
+
+mixing要素はroute_indexでresult.cooling.routesへ対応。冷却流量、供給温度/圧力、必要供給圧、混合エネルギー残差、混合後組成を記録。圧縮機段のbleed_fractionとdownstream_mass_flow_factorは入口空気基準。energy_balance.cooling_external_heat_wは符号付きの外部熱。
+
+旧schema 1〜4は冷却なしとして正規化。旧v0.4.0ケースも入力を取り出して再計算できる。冷却率がすべて0なら従来計算をそのまま使う。ハッシュに冷却設定全体を含む。

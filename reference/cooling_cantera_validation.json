@@ -1,0 +1,41 @@
+{
+  "reference": "Cantera NASA9 HP/SP and absolute entropy including ideal mixing",
+  "dataset_id": "nasa-cea-985fd33368b2-nasa9-5species",
+  "element_states_checked": 32,
+  "mixing_points_checked": 8,
+  "maximum_temperature_error_k": 2.8329031920293346e-07,
+  "maximum_pressure_relative_error": 3.1681147463017103e-10,
+  "maximum_mixing_entropy_error_w_k": 2.307554964886549e-07,
+  "maximum_turbine_work_relative_error": 1.9115869638971727e-10,
+  "cases": [
+    {
+      "temperature_basis": "combustor_exit",
+      "route_external_heat_j_kg": 0.0,
+      "turbine_reference_work_w": 370202.93284572836,
+      "combustor_exit_k": 1123.0,
+      "first_rotor_inlet_k": 1098.5895473821229
+    },
+    {
+      "temperature_basis": "combustor_exit",
+      "route_external_heat_j_kg": 20000.0,
+      "turbine_reference_work_w": 370435.39235998463,
+      "combustor_exit_k": 1123.0,
+      "first_rotor_inlet_k": 1099.2633347419232
+    },
+    {
+      "temperature_basis": "first_rotor_inlet",
+      "route_external_heat_j_kg": 0.0,
+      "turbine_reference_work_w": 379114.84197715763,
+      "combustor_exit_k": 1148.2446909096325,
+      "first_rotor_inlet_k": 1123.000000040468
+    },
+    {
+      "temperature_basis": "first_rotor_inlet",
+      "route_external_heat_j_kg": 20000.0,
+      "turbine_reference_work_w": 379101.37569029717,
+      "combustor_exit_k": 1147.5520728185074,
+      "first_rotor_inlet_k": 1123.0000000467508
+    }
+  ],
+  "limitations": "Shares NASA data, gas composition/FAR and solved rotor pressure ratios with the app. Independently propagates mixed states and checks mixing entropy and turbine work. Not an independent full-cycle root solver, CFD or real-engine validation."
+}

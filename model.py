@@ -5,8 +5,8 @@ import math
 import uuid
 
 MODULE_ID = "gt.cycle.simple_single_shaft"
-MODULE_VERSION = "0.4.0"
-SCHEMA_VERSION = 4
+MODULE_VERSION = "0.5.0"
+SCHEMA_VERSION = 5
 
 # All limits are software applicability bounds, not equipment operating limits.
 # key, label, UI unit, UI multiplier, SI minimum, SI maximum, SI default, group
@@ -40,9 +40,10 @@ class InputError(ValueError):
 
 
 def default_input(thermo_model="nasa9_frozen"):
-    return {"schema_version": 4, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
+    return {"schema_version": 5, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
             "staging": default_staging(),
             "elements": default_elements(),
+            "cooling": default_cooling(),
             "thermodynamics": {"model": thermo_model, "fuel": "methane", "fuel_hydrogen_mass_fraction": .25},
             "context": {"project_id": None, "component_id": None, "source_revision": None}}
 
@@ -50,6 +51,57 @@ def default_input(thermo_model="nasa9_frozen"):
 def default_staging():
     return {k: {"count": 1, "distribution": "pressure", "weights": [1.0], "mean_diameters_m": None}
             for k in ("compressor", "turbine")}
+
+
+def cooling_circuit():
+    return {"name": "冷却空気", "source_stage": 1, "fraction": .03, "target_stage": 1,
+            "injection": "before_rotor", "pressure_loss_fraction": .01, "heat_j_kg": 0.,
+            "mix_pressure_loss_fraction": .005, "required_pressure_margin": .01, "mixed_velocity_m_s": 150.}
+
+
+def default_cooling():
+    return {"enabled": False, "temperature_basis": "combustor_exit", "combustor_exit_limit_k": 2400., "circuits": []}
+
+
+def validate_cooling(raw, staging, elements, thermo):
+    if not isinstance(raw, dict) or set(raw) != {"enabled", "temperature_basis", "combustor_exit_limit_k", "circuits"} or type(raw["enabled"]) is not bool:
+        raise InputError("冷却空気設定の形式が不正です。")
+    if raw["temperature_basis"] not in ("combustor_exit", "first_rotor_inlet"):
+        raise InputError("冷却時の温度基準を指定してください。")
+    def number(x, lo, hi, label):
+        if type(x) not in (int,float) or not math.isfinite(x) or not lo <= x <= hi:
+            raise InputError(f"{label}は{lo}〜{hi}の有限数値にしてください。")
+        return float(x)
+    limit = number(raw["combustor_exit_limit_k"], 500, 3000, "燃焼器出口温度上限 K")
+    circuits = raw["circuits"]
+    if not isinstance(circuits, list) or len(circuits) > 12:
+        raise InputError("冷却流路は12本以内にしてください。")
+    clean = []
+    for item in circuits:
+        if not isinstance(item, dict) or set(item) != set(cooling_circuit()):
+            raise InputError("冷却流路の項目が不正です。")
+        name = item["name"]
+        if not isinstance(name, str) or not 1 <= len(name.strip()) <= 80:
+            raise InputError("冷却流路名は1〜80文字にしてください。")
+        row = {"name": name.strip()}
+        for key in ("source_stage", "target_stage"):
+            maximum = staging["compressor" if key == "source_stage" else "turbine"]["count"] if raw["enabled"] else 30
+            if type(item[key]) is not int or not 1 <= item[key] <= maximum:
+                raise InputError(name+"の抽気段・注入段が段構成の範囲外です。")
+            row[key] = item[key]
+        if item["injection"] not in ("before_nozzle", "before_rotor", "after_rotor", "after_diffuser"):
+            raise InputError(name+"の冷却混合点が不正です。")
+        row["injection"] = item["injection"]
+        for key, lo, hi in (("fraction",0,.3), ("pressure_loss_fraction",0,.5), ("heat_j_kg",-500000,500000),
+                            ("mix_pressure_loss_fraction",0,.2), ("required_pressure_margin",0,.5), ("mixed_velocity_m_s",1,600)):
+            row[key] = number(item[key], lo, hi, name+" "+key)
+        clean.append(row)
+    if math.fsum(c["fraction"] for c in clean) > .4+1e-12:
+        raise InputError("冷却抽気の合計は圧縮機入口流量の40%以下にしてください。")
+    if raw["enabled"] and any(c["fraction"] > 0 for c in clean):
+        if thermo["model"] != "nasa9_frozen" or not elements["turbine"]["enabled"]:
+            raise InputError("冷却空気はNASA物性・タービン要素モードで使用してください。")
+    return {"enabled": raw["enabled"], "temperature_basis": raw["temperature_basis"], "combustor_exit_limit_k": limit, "circuits": clean}
 
 
 def element_stage(kind):
@@ -129,16 +181,16 @@ def validate_staging(raw):
 
 
 def validate_input(raw):
-    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") not in (1, 2, 3, 4):
-        raise InputError("入力のschema_versionは1、2、3、4を指定してください。")
-    if set(raw) - {"schema_version", "mode", "name", "parameters", "context", "thermodynamics", "staging", "elements"}:
+    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") not in (1, 2, 3, 4, 5):
+        raise InputError("入力のschema_versionは1〜5を指定してください。")
+    if set(raw) - {"schema_version", "mode", "name", "parameters", "context", "thermodynamics", "staging", "elements", "cooling"}:
         raise InputError("未対応の入力フィールドがあります。")
     if raw["schema_version"] < 3 and "staging" in raw:
         raise InputError("段構成を追加する場合はschema_version=3にしてください。")
     staging = validate_staging(raw.get("staging") if raw["schema_version"] >= 3 else default_staging())
     if raw["schema_version"] < 4 and "elements" in raw:
         raise InputError("要素モデルを追加する場合はschema_version=4にしてください。")
-    elements = validate_elements(raw.get("elements") if raw["schema_version"] == 4 else default_elements(), staging)
+    elements = validate_elements(raw.get("elements") if raw["schema_version"] >= 4 else default_elements(), staging)
     settings = raw.get("thermodynamics")
     if raw["schema_version"] == 1:
         if settings is not None:
@@ -152,6 +204,9 @@ def validate_input(raw):
     if type(fraction) not in (int, float) or not math.isfinite(fraction) or not 0 <= fraction <= 1:
         raise InputError("C/H燃料の水素質量割合は0〜1で指定してください。")
     settings = {"model": settings["model"], "fuel": settings["fuel"], "fuel_hydrogen_mass_fraction": float(fraction)}
+    if raw["schema_version"] < 5 and "cooling" in raw:
+        raise InputError("冷却空気を追加する場合はschema_version=5にしてください。")
+    cooling = validate_cooling(raw.get("cooling") if raw["schema_version"] == 5 else default_cooling(), staging, elements, settings)
     mode = raw.get("mode")
     if mode not in ("airflow", "target_power"):
         raise InputError("計算方法はairflowまたはtarget_powerを指定してください。")
@@ -186,7 +241,7 @@ def validate_input(raw):
     refs["source_revision"] = rev
     if (refs["component_id"] is not None or rev is not None) and refs["project_id"] is None:
         raise InputError("部品・リビジョンを指定する場合はproject_idも必要です。")
-    return {"schema_version": 4, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs, "thermodynamics": settings, "staging": staging, "elements": elements}
+    return {"schema_version": 5, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs, "thermodynamics": settings, "staging": staging, "elements": elements, "cooling": cooling}
 
 
 def input_hash(value):

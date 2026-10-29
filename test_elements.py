@@ -146,7 +146,7 @@ class ElementTests(unittest.TestCase):
     def test_old_version_three_is_migrated_and_elements_affect_hash(self):
         raw = json.loads((Path(__file__).parent/"examples/multistage_result.json").read_text(encoding="utf-8"))
         migrated = read_input_file(raw)
-        self.assertEqual(migrated["schema_version"], 4)
+        self.assertEqual(migrated["schema_version"], 5)
         self.assertFalse(migrated["elements"]["compressor"]["enabled"])
         self.assertEqual(migrated["staging"]["compressor"]["count"], 4)
         x = enabled()
