@@ -1,0 +1,215 @@
+{
+  "schema_version": 6,
+  "mode": "airflow",
+  "name": "許容翼温度730K・冷却流量逆算・実機未検証",
+  "parameters": {
+    "ambient_temperature_k": 288.15,
+    "ambient_pressure_pa": 101325,
+    "air_mass_flow_kg_s": 1.2,
+    "target_net_power_w": 100000,
+    "shaft_speed_rpm": 60000,
+    "compressor_pressure_ratio": 3.8,
+    "turbine_inlet_temperature_k": 1123,
+    "compressor_efficiency": 0.78,
+    "turbine_efficiency": 0.85,
+    "combustion_efficiency": 0.99,
+    "mechanical_efficiency": 0.98,
+    "generator_efficiency": 0.95,
+    "inlet_pressure_loss": 0.01,
+    "combustor_pressure_loss": 0.04,
+    "exhaust_pressure_loss": 0.02,
+    "fuel_lhv_j_kg": 50000000.0,
+    "auxiliary_power_w": 2000,
+    "cp_air_j_kg_k": 1005,
+    "cp_gas_j_kg_k": 1150,
+    "r_air_j_kg_k": 287.05,
+    "r_gas_j_kg_k": 287.05
+  },
+  "staging": {
+    "compressor": {
+      "count": 2,
+      "distribution": "pressure",
+      "weights": [
+        1,
+        1
+      ],
+      "mean_diameters_m": null
+    },
+    "turbine": {
+      "count": 2,
+      "distribution": "pressure",
+      "weights": [
+        1,
+        1
+      ],
+      "mean_diameters_m": null
+    }
+  },
+  "elements": {
+    "compressor": {
+      "enabled": true,
+      "inlet_velocity_m_s": 60.0,
+      "stages": [
+        {
+          "rotor_efficiency": 0.84,
+          "rotor_exit_velocity_m_s": 200.0,
+          "diffuser": {
+            "enabled": true,
+            "model": "cp",
+            "coefficient": 0.6,
+            "exit_velocity_m_s": 100.0
+          },
+          "return_channel": {
+            "enabled": true,
+            "model": "loss",
+            "coefficient": 0.15,
+            "exit_velocity_m_s": 60.0
+          }
+        },
+        {
+          "rotor_efficiency": 0.84,
+          "rotor_exit_velocity_m_s": 200.0,
+          "diffuser": {
+            "enabled": true,
+            "model": "cp",
+            "coefficient": 0.6,
+            "exit_velocity_m_s": 100.0
+          },
+          "return_channel": {
+            "enabled": true,
+            "model": "loss",
+            "coefficient": 0.15,
+            "exit_velocity_m_s": 60.0
+          }
+        }
+      ]
+    },
+    "turbine": {
+      "enabled": true,
+      "inlet_velocity_m_s": 60.0,
+      "stages": [
+        {
+          "rotor_efficiency": 0.9,
+          "rotor_exit_velocity_m_s": 100.0,
+          "nozzle": {
+            "enabled": true,
+            "model": "loss",
+            "coefficient": 0.04,
+            "exit_velocity_m_s": 200.0
+          },
+          "diffuser": {
+            "enabled": true,
+            "model": "loss",
+            "coefficient": 0.1,
+            "exit_velocity_m_s": 60.0
+          }
+        },
+        {
+          "rotor_efficiency": 0.9,
+          "rotor_exit_velocity_m_s": 100.0,
+          "nozzle": {
+            "enabled": true,
+            "model": "loss",
+            "coefficient": 0.04,
+            "exit_velocity_m_s": 200.0
+          },
+          "diffuser": {
+            "enabled": true,
+            "model": "loss",
+            "coefficient": 0.1,
+            "exit_velocity_m_s": 60.0
+          }
+        }
+      ]
+    }
+  },
+  "cooling": {
+    "enabled": true,
+    "temperature_basis": "combustor_exit",
+    "combustor_exit_limit_k": 2400.0,
+    "circuits": [
+      {
+        "name": "1段ノズル前冷却",
+        "source_stage": 2,
+        "fraction": 0.04,
+        "target_stage": 1,
+        "injection": "before_nozzle",
+        "pressure_loss_fraction": 0.01,
+        "heat_j_kg": 0.0,
+        "mix_pressure_loss_fraction": 0.005,
+        "required_pressure_margin": 0.01,
+        "mixed_velocity_m_s": 60,
+        "thermal": {
+          "enabled": false,
+          "mode": "fixed_flow",
+          "gas_h_w_m2_k": 1200.0,
+          "coolant_h_w_m2_k": 2000.0,
+          "gas_area_m2": 0.02,
+          "coolant_area_m2": 0.025,
+          "metal_thickness_m": 0.001,
+          "metal_conductivity_w_m_k": 20.0,
+          "tbc_thickness_m": 0.0002,
+          "tbc_conductivity_w_m_k": 1.5,
+          "film_effectiveness": 0.0,
+          "metal_limit_k": 1000.0,
+          "min_fraction": 0.005,
+          "max_fraction": 0.15
+        },
+        "pumping": {
+          "enabled": false,
+          "inlet_radius_m": 0.025,
+          "outlet_radius_m": 0.07,
+          "inlet_swirl_ratio": 1.0,
+          "outlet_swirl_ratio": 1.0,
+          "isentropic_efficiency": 0.8
+        }
+      },
+      {
+        "name": "動翼内部冷却",
+        "source_stage": 1,
+        "fraction": 0.03,
+        "target_stage": 2,
+        "injection": "after_rotor",
+        "pressure_loss_fraction": 0.01,
+        "heat_j_kg": 0.0,
+        "mix_pressure_loss_fraction": 0.005,
+        "required_pressure_margin": 0.01,
+        "mixed_velocity_m_s": 180,
+        "thermal": {
+          "enabled": true,
+          "mode": "metal_limit",
+          "gas_h_w_m2_k": 1200.0,
+          "coolant_h_w_m2_k": 2000.0,
+          "gas_area_m2": 0.08,
+          "coolant_area_m2": 0.1,
+          "metal_thickness_m": 0.001,
+          "metal_conductivity_w_m_k": 20.0,
+          "tbc_thickness_m": 0.0002,
+          "tbc_conductivity_w_m_k": 1.5,
+          "film_effectiveness": 0.0,
+          "metal_limit_k": 730,
+          "min_fraction": 0.005,
+          "max_fraction": 0.15
+        },
+        "pumping": {
+          "enabled": true,
+          "inlet_radius_m": 0.015,
+          "outlet_radius_m": 0.04,
+          "inlet_swirl_ratio": 1.0,
+          "outlet_swirl_ratio": 1.0,
+          "isentropic_efficiency": 0.8
+        }
+      }
+    ]
+  },
+  "thermodynamics": {
+    "model": "nasa9_frozen",
+    "fuel": "methane",
+    "fuel_hydrogen_mass_fraction": 0.25
+  },
+  "context": {
+    "project_id": null,
+    "component_id": null,
+    "source_revision": null
+  }
+}

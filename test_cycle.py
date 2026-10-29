@@ -273,7 +273,7 @@ class APITests(unittest.TestCase):
     def test_nasa_http_default_and_legacy_input_migration(self):
         schema = json.loads(self.request("/api/schema")[1])
         self.assertEqual(schema["default"]["thermodynamics"]["model"], "nasa9_frozen")
-        self.assertEqual(schema["module_version"], "0.5.0")
+        self.assertEqual(schema["module_version"], "0.6.0")
         status, data, _ = self.request("/api/calculate", {"input": schema["default"]})
         self.assertEqual(status, 200)
         result = json.loads(data)["result"]
@@ -337,6 +337,21 @@ class APITests(unittest.TestCase):
         status,body,_=self.request("/api/calculate",{"input":inp})
         self.assertEqual(status,400)
         self.assertIn("供給全圧",json.loads(body)["error"])
+
+    def test_blade_heat_pumping_http_persistence(self):
+        from test_blade_cooling import blade_sample
+        inp=blade_sample()
+        status,body,_=self.request('/api/save',{'input':inp})
+        self.assertEqual(status,200)
+        saved=json.loads(body)
+        self.assertGreater(saved['result']['metrics']['cooling_pumping_power_w'],0)
+        self.assertGreater(saved['result']['cooling']['routes'][1]['thermal']['heat_w'],0)
+        loaded=json.loads(self.request('/api/case?id='+saved['run_id'])[1])
+        self.assertEqual(loaded['result']['cooling'],saved['result']['cooling'])
+        imported=json.loads(self.request('/api/import',{'document':saved})[1])
+        self.assertEqual(imported['input']['cooling'],saved['input']['cooling'])
+        inp['cooling']['circuits'][1]['pumping']['inlet_radius_m']=1
+        self.assertEqual(self.request('/api/calculate',{'input':inp})[0],400)
 
 
 if __name__ == "__main__":

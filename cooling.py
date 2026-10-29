@@ -1,7 +1,7 @@
 """Compressor-stage bleeds, external coolant routes, and lumped inter-element mixing.
 
-Masses are initially per kg of compressor-inlet air. No rotor pumping, metal cooling,
-velocity-triangle or cooling-hole model is claimed. Mixing entropy uses absolute species
+Masses are initially per kg of compressor-inlet air. Lumped blade heat and Euler pumping
+are optional; no resolved velocity-triangle or cooling-hole model is claimed. Mixing entropy uses absolute species
 entropy including ideal mixing, not composition-dependent sensible-entropy datums.
 """
 import copy
@@ -12,11 +12,13 @@ if __package__:
     from .thermo import air, products, Mixture, DATA, RU, species_properties, properties_at, provenance, stoichiometric_fuel_air_ratio, hydrogen_fraction
     from .elements import state, passive, rotor, temperature, solve_train, apply_mass
     from .stages import allocate
+    from .blade_cooling import pump, heat_cell
 else:
     from model import InputError, MODULE_ID, MODULE_VERSION
     from thermo import air, products, Mixture, DATA, RU, species_properties, properties_at, provenance, stoichiometric_fuel_air_ratio, hydrogen_fraction
     from elements import state, passive, rotor, temperature, solve_train, apply_mass
     from stages import allocate
+    from blade_cooling import pump, heat_cell
 
 
 def absolute_entropy(gas, tt, pt):
@@ -56,7 +58,7 @@ def mix(gas, mass, current, route, strict):
            "route_index":route["index"],"coolant_fraction":dm,"coolant_name":c["name"],"coolant_total_temperature_k":route["supply_total_temperature_k"],
            "coolant_total_pressure_pa":route["supply_total_pressure_pa"], "required_supply_pressure_pa":required,
            "mixing_energy_residual_per_inlet_air_j_kg":(mass+dm)*newgas.h(tt)-mass*gas.h(current["total_temperature_k"])-dm*air().h(route["supply_total_temperature_k"]),
-           "outlet_mass_fractions":dict(newgas.mass_fractions)}
+           "primary_mass_fractions":dict(gas.mass_fractions), "outlet_mass_fractions":dict(newgas.mass_fractions)}
     return newgas,mass+dm,out,row
 
 
@@ -159,6 +161,37 @@ def mass_scaled(train, ma, mechanical=1.):
 
 
 def analyze_cooled(inp):
+    sizing=[(i,c) for i,c in enumerate(inp['cooling']['circuits'])
+            if c['thermal']['enabled'] and c['thermal']['mode']=='metal_limit']
+    if not sizing: return _analyze_cooled(inp)
+    index,circuit=sizing[0]; cfg=circuit['thermal']
+    trial=copy.deepcopy(inp); selected=trial['cooling']['circuits'][index]
+    selected['thermal']['mode']='fixed_flow'
+    def solve(fraction):
+        selected['fraction']=fraction
+        r=_analyze_cooled(trial)
+        route=next(x for x in r['cooling']['routes'] if x['input']['name']==circuit['name'] and x['circuit_index']==index)
+        return r,route['thermal']['metal_max_temperature_k']
+    lo,hi=cfg['min_fraction'],cfg['max_fraction']
+    low,tlow=solve(lo)
+    if tlow<=cfg['metal_limit_k']:
+        result=low; fraction=lo; status='minimum_flow_satisfies_limit'
+    else:
+        high,thigh=solve(hi)
+        if thigh>cfg['metal_limit_k']:
+            raise InputError('指定した冷却流量上限では許容翼金属温度を満たせません。')
+        if thigh>=tlow: raise InputError('冷却流量と翼温度の関係が逆算条件に適合しません。')
+        for _ in range(22):
+            mid=(lo+hi)/2; current,t=solve(mid)
+            if t>cfg['metal_limit_k']: lo=mid
+            else: hi=mid; high=current
+        result=high; fraction=hi; status='metal_limit_solved'
+    result['cooling']['flow_sizing']={'circuit_index':index,'fraction':fraction,'status':status,
+                                    'metal_limit_k':cfg['metal_limit_k'],'requested_fraction':circuit['fraction']}
+    return result
+
+
+def _analyze_cooled(inp):
     v=inp["parameters"]; cfg=inp["cooling"]; a=air()
     flows=[c for c in cfg["circuits"] if c["fraction"]>0]
     bleed=math.fsum(c["fraction"] for c in flows); burner_air=1-bleed
@@ -193,11 +226,15 @@ def analyze_cooled(inp):
     for row in comp["stages"]: row["work_fraction"]=row["work_per_inlet_air_j_kg"]/comp["work_per_inlet_air_j_kg"]
     t2=comp["states"][-1]["total_temperature_k"]
     routes=[]
-    for c in flows:
+    for circuit_index,c in enumerate(cfg['circuits']):
+        if c['fraction']<=0: continue
         source=comp["stages"][c["source_stage"]-1]["outlet"]
         tt=temperature(a,"h",a.h(source["total_temperature_k"])+c["heat_j_kg"])
-        routes.append({"index":len(routes),"input":c,"source_total_temperature_k":source["total_temperature_k"],"source_total_pressure_pa":source["total_pressure_pa"],
-                       "supply_total_temperature_k":tt,"supply_total_pressure_pa":source["total_pressure_pa"]*(1-c["pressure_loss_fraction"])})
+        pt=source['total_pressure_pa']*(1-c['pressure_loss_fraction'])
+        pumped_tt,pumped_pt,work=pump(a,tt,pt,v['shaft_speed_rpm'],c['pumping'])
+        routes.append({"index":len(routes),"circuit_index":circuit_index,"input":c,"source_total_temperature_k":source["total_temperature_k"],"source_total_pressure_pa":source["total_pressure_pa"],
+                       "pre_pump_temperature_k":tt,"pre_pump_pressure_pa":pt,"pumping_specific_work_j_kg":work,
+                       "supply_total_temperature_k":pumped_tt,"supply_total_pressure_pa":pumped_pt})
     def burn(tt):
         if tt<=t2: raise InputError("燃焼器出口温度は圧縮機出口温度より高くしてください。")
         lo,hi=0.,stoichiometric_fuel_air_ratio(inp["thermodynamics"])
@@ -231,14 +268,16 @@ def analyze_cooled(inp):
     gas,fuel=burn(t3); hot_mass=burner_air+fuel
     turbine=cooled_turbine(gas,hot_mass,t3,p3,p4,inp["staging"]["turbine"],inp["elements"]["turbine"],routes,v["shaft_speed_rpm"])
     wc=comp["work_per_inlet_air_j_kg"]; wt=turbine["work_per_inlet_air_j_kg"]
-    shaft_specific=v["mechanical_efficiency"]*wt-wc
+    pump_specific=math.fsum(r['input']['fraction']*r['pumping_specific_work_j_kg'] for r in routes)
+    shaft_specific=v["mechanical_efficiency"]*wt-wc-pump_specific
     ma=v["air_mass_flow_kg_s"]
     if inp["mode"]=="target_power":
         if shaft_specific<=0: raise InputError("冷却条件では正の軸出力が得られません。")
         ma=(v["target_net_power_w"]+v["auxiliary_power_w"])/(v["generator_efficiency"]*shaft_specific)
         if not .001<=ma<=1000: raise InputError("必要空気流量が0.001〜1000 kg/sの範囲外です。")
     mf=ma*fuel; mg=ma*(1+fuel); wc*=ma; wt*=ma
-    shaft=v["mechanical_efficiency"]*wt-wc; generating=shaft>0
+    pump_power=ma*pump_specific
+    shaft=v["mechanical_efficiency"]*wt-wc-pump_power; generating=shaft>0
     gross=shaft*v["generator_efficiency"] if generating else None
     net=gross-v["auxiliary_power_w"] if generating else None
     fuel_heat=mf*v["fuel_lhv_j_kg"]
@@ -254,8 +293,8 @@ def analyze_cooled(inp):
         tis=temperature(g,"entropy_thermal",g.entropy_thermal(tt)+g.r*math.log(p4/pt))
         return g.h(tt)-g.h(tis)
     ideal_hot=hot_mass*ideal(gas,t3,p3)
-    ideal_cool=math.fsum(c["input"]["fraction"]*ideal(a,c["supply_total_temperature_k"],c["supply_total_pressure_pa"]) for c in routes)
-    thermal_eta=(wt/ma)/(ideal_hot+ideal_cool) if ideal_hot+ideal_cool>0 else None
+    ideal_cool=math.fsum(c["input"]["fraction"]*ideal(a,c["pre_pump_temperature_k"],c["pre_pump_pressure_pa"]) for c in routes)
+    thermal_eta=(wt/ma-pump_specific)/(ideal_hot+ideal_cool) if ideal_hot+ideal_cool>0 else None
     comp_scaled=mass_scaled(comp,ma); turbine_scaled=mass_scaled(turbine,ma,v["mechanical_efficiency"])
     comp_scaled["bleed_aware"]=True; turbine_scaled["thermodynamic_efficiency"]=thermal_eta
     stations=[]
@@ -267,10 +306,22 @@ def analyze_cooled(inp):
     for route in routes:
         route["mass_flow_kg_s"]=ma*route["input"]["fraction"]
         route["external_heat_w"]=route["mass_flow_kg_s"]*route["input"]["heat_j_kg"]
+        route['pumping_power_w']=route['mass_flow_kg_s']*route['pumping_specific_work_j_kg']
+        if route['input']['thermal']['enabled']:
+            row=next(e for e in turbine_scaled['elements'] if e.get('route_index')==route['index'])
+            g=Mixture(row['primary_mass_fractions'])
+            thermal=heat_cell(g,row['inlet']['mass_flow_kg_s'],row['inlet']['total_temperature_k'],
+                              route['mass_flow_kg_s'],route['supply_total_temperature_k'],route['input']['thermal'])
+            row['thermal']=thermal; route['thermal']=thermal
+            row['heat_entropy_generation_w_k']=thermal['heat_entropy_generation_w_k']
+            row['post_heat_mixing_entropy_generation_w_k']=row['entropy_generation_w_k']-thermal['heat_entropy_generation_w_k']
+            if row['post_heat_mixing_entropy_generation_w_k'] < -1e-5:
+                raise InputError('翼熱交換後の混合エントロピーが減少します。混合全圧損失を確認してください。')
     positive=generating and net>0
     metrics={"air_mass_flow_kg_s":ma,"fuel_mass_flow_kg_s":mf,"gas_mass_flow_kg_s":mg,"fuel_air_ratio":fuel,"combustor_fuel_air_ratio":fuel/burner_air,
              "compressor_power_w":wc,"turbine_gas_power_w":wt,"turbine_shaft_power_w":v["mechanical_efficiency"]*wt,
              "net_shaft_power_w":shaft,"gross_electric_power_w":gross,"net_electric_power_w":net,"fuel_heat_input_w":fuel_heat,
+             "cooling_pumping_power_w":pump_power,"blade_heat_transfer_w":math.fsum(r.get('thermal',{}).get('heat_w',0) for r in routes),
              "shaft_efficiency_lhv":shaft/fuel_heat if generating else None,"electric_efficiency_lhv":net/fuel_heat if positive else None,
              "heat_rate_kj_kwh":fuel_heat/net*3600 if positive else None,"specific_fuel_consumption_kg_kwh":mf/net*3.6e6 if positive else None,
              "exhaust_temperature_k":t4,"turbine_expansion_ratio":p3/p4,"back_work_ratio":wc/(wt*v["mechanical_efficiency"]),
@@ -280,7 +331,7 @@ def analyze_cooled(inp):
              "cooling_air_mass_flow_kg_s":ma*bleed,"combustor_exit_temperature_k":t3,"first_rotor_inlet_temperature_k":turbine["first_rotor_inlet"]["total_temperature_k"],
              "electric_efficiency_total_heat":net/(fuel_heat+max(heat,0)) if positive else None}
     if not all(math.isfinite(x) for x in metrics.values() if x is not None): raise InputError("冷却計算が非有限値です。")
-    return {"schema_version":5,"module_id":MODULE_ID,"module_version":MODULE_VERSION,"status":"success" if positive else "non_generating",
+    return {"schema_version":6,"module_id":MODULE_ID,"module_version":MODULE_VERSION,"status":"success" if positive else "non_generating",
             "model":"nasa9_cooled_element_network","enthalpy_reference_temperature_k":298.15,"metrics":metrics,"stations":stations,
             "stage_results":{"compressor":comp_scaled,"turbine":turbine_scaled},
             "thermodynamics":{"model":"nasa9_frozen","fuel":inp["thermodynamics"]["fuel"],"dataset":provenance(),"air_mass_fractions":dict(a.mass_fractions),
@@ -289,13 +340,15 @@ def analyze_cooled(inp):
                               "equivalence_ratio":fuel/burner_air/stoichiometric_fuel_air_ratio(inp["thermodynamics"]),
                               "stoichiometric_fuel_air_ratio":stoichiometric_fuel_air_ratio(inp["thermodynamics"])},
             "cooling":{"enabled":True,"fraction_basis":"compressor_inlet_air","total_fraction":bleed,"temperature_basis":cfg["temperature_basis"],
+                       "pumping_power_w":pump_power,
                        "routes":routes,"external_heat_w":heat,"hot_turbine_mass_flow_kg_s":ma*hot_mass,"outlet_mass_flow_kg_s":mg,
                        "turbine_ideal_hot_power_w":ma*ideal_hot,"turbine_ideal_coolant_power_w":ma*ideal_cool,
-                       "efficiency_definition":"Thermodynamic: gas work divided by sum of separate isentropic inlet-to-exit work potentials. No coolant pumping work model."},
+                       "efficiency_definition":"Net fluid work (gas rotor work minus coolant pumping) / separate main and pre-pump coolant isentropic work potentials. Mechanical loss is separate."},
             "energy_balance":{"combustion_loss_w":comb_loss,"mechanical_loss_w":mech_loss,"generator_loss_w":gen_loss,
                               "auxiliary_power_w":v["auxiliary_power_w"],"exhaust_net_sensible_energy_w":exhaust,"cooling_external_heat_w":heat,
+                              "cooling_pumping_power_w":pump_power,
                               "shaft_balance_residual_w":balance,"electric_balance_residual_w":electric_balance,
                               "mass_balance_residual_kg_s":mg-ma-mf},
-            "warnings":["冷却は抽気・流路・要素間完全混合の等価モデルです。ロータ内部の遠心ポンピング・翼伝熱・金属温度・冷却孔・速度三角形は計算しません。",
+            "warnings":["冷却は要素間完全混合の等価モデルです。翼熱は一定入力係数の等価並流LMTDモデル、ポンピングはEuler仕事と等価全圧効率です。冷却孔・3D温度分布・局所速度三角形は解きません。",
                         "温度依存NASA物性・凍結組成です。燃焼の化学平衡・解離は未対応です。冷却タービンの単一入口ηttは表示せず、複数入口の熱力学効率を別表示します。",
-                        "冷却流路の熱授受は外部との熱交換です。翼から冷却空気への内部熱移動として入力すると熱を二重計上するため、その用途には使わないでください。"]}
+                        "流路の外部熱と翼内の内部伝熱を区別します。内部伝熱は合流直前で主流から差し引き冷却空気へ加え、全体で相殺します。"]}

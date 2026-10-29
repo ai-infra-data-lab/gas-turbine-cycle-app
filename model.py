@@ -5,8 +5,8 @@ import math
 import uuid
 
 MODULE_ID = "gt.cycle.simple_single_shaft"
-MODULE_VERSION = "0.5.0"
-SCHEMA_VERSION = 5
+MODULE_VERSION = "0.6.0"
+SCHEMA_VERSION = 6
 
 # All limits are software applicability bounds, not equipment operating limits.
 # key, label, UI unit, UI multiplier, SI minimum, SI maximum, SI default, group
@@ -15,7 +15,7 @@ FIELDS = [
     ("ambient_pressure_pa", "大気圧力（絶対圧）", "kPa", .001, 20000, 150000, 101325, "環境・運転点"),
     ("air_mass_flow_kg_s", "空気流量（全流量）", "kg/s", 1, .001, 1000, 1.2, "環境・運転点"),
     ("target_net_power_w", "目標正味発電出力", "kW", .001, 100, 1e9, 100000, "環境・運転点"),
-    ("shaft_speed_rpm", "軸回転数（負荷係数用）", "rpm", 1, 100, 300000, 60000, "環境・運転点"),
+    ("shaft_speed_rpm", "軸回転数（冷却ポンピング・負荷係数用）", "rpm", 1, 100, 300000, 60000, "環境・運転点"),
     ("compressor_pressure_ratio", "圧縮機全圧比", "—", 1, 1.01, 50, 3.8, "サイクル・効率"),
     ("turbine_inlet_temperature_k", "タービン入口全温", "K", 1, 500, 2000, 1123, "サイクル・効率"),
     ("compressor_efficiency", "圧縮機全体等エントロピー効率", "%", 100, .5, 1, .78, "サイクル・効率"),
@@ -40,7 +40,7 @@ class InputError(ValueError):
 
 
 def default_input(thermo_model="nasa9_frozen"):
-    return {"schema_version": 5, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
+    return {"schema_version": 6, "mode": "airflow", "name": "小型GT・設計点サンプル", "parameters": {x[0]: x[6] for x in FIELDS},
             "staging": default_staging(),
             "elements": default_elements(),
             "cooling": default_cooling(),
@@ -54,9 +54,14 @@ def default_staging():
 
 
 def cooling_circuit():
+    if __package__:
+        from .blade_cooling import thermal_defaults, pumping_defaults
+    else:
+        from blade_cooling import thermal_defaults, pumping_defaults
     return {"name": "冷却空気", "source_stage": 1, "fraction": .03, "target_stage": 1,
             "injection": "before_rotor", "pressure_loss_fraction": .01, "heat_j_kg": 0.,
-            "mix_pressure_loss_fraction": .005, "required_pressure_margin": .01, "mixed_velocity_m_s": 150.}
+            "mix_pressure_loss_fraction": .005, "required_pressure_margin": .01, "mixed_velocity_m_s": 150.,
+            "thermal": thermal_defaults(), "pumping": pumping_defaults()}
 
 
 def default_cooling():
@@ -95,10 +100,39 @@ def validate_cooling(raw, staging, elements, thermo):
         for key, lo, hi in (("fraction",0,.3), ("pressure_loss_fraction",0,.5), ("heat_j_kg",-500000,500000),
                             ("mix_pressure_loss_fraction",0,.2), ("required_pressure_margin",0,.5), ("mixed_velocity_m_s",1,600)):
             row[key] = number(item[key], lo, hi, name+" "+key)
+        for group in ('thermal','pumping'):
+            settings=item[group]
+            if not isinstance(settings,dict) or set(settings)!=set(cooling_circuit()[group]) or type(settings['enabled']) is not bool:
+                raise InputError(name+'の翼熱・ポンピング設定の形式が不正です。')
+            row[group]={'enabled':settings['enabled']}
+        t=item['thermal']; p=item['pumping']
+        if t['mode'] not in ('fixed_flow','metal_limit'): raise InputError('翼温度計算モードが不正です。')
+        row['thermal']['mode']=t['mode']
+        bounds={'gas_h_w_m2_k':(1,100000),'coolant_h_w_m2_k':(1,100000),
+                'gas_area_m2':(1e-6,100),'coolant_area_m2':(1e-6,100),
+                'metal_thickness_m':(1e-6,.1),'metal_conductivity_w_m_k':(.1,1000),
+                'tbc_thickness_m':(0,.01),'tbc_conductivity_w_m_k':(.01,100),
+                'film_effectiveness':(0,.95),'metal_limit_k':(300,2000),
+                'min_fraction':(.0001,.3),'max_fraction':(.0001,.3)}
+        for key,(low,high) in bounds.items(): row['thermal'][key]=number(t[key],low,high,name+' '+key)
+        if t['min_fraction']>=t['max_fraction']: raise InputError('冷却流量逆算の下限は上限より小さくしてください。')
+        for key,low,high in (('inlet_radius_m',0,2),('outlet_radius_m',0,2),('inlet_swirl_ratio',0,1),('outlet_swirl_ratio',0,1),('isentropic_efficiency',.1,1)):
+            row['pumping'][key]=number(p[key],low,high,name+' '+key)
+        if raw['enabled'] and p['enabled']:
+            if item['injection'] not in ('after_rotor','after_diffuser'):
+                raise InputError('ロータ冷却ポンピング流はロータ後またはディフューザー後で混合してください。')
+            if p['outlet_swirl_ratio']*p['outlet_radius_m']**2 < p['inlet_swirl_ratio']*p['inlet_radius_m']**2:
+                raise InputError('冷却ポンピングのEuler仕事が負です。')
+        if raw['enabled'] and t['enabled'] and item['fraction']==0 and t['mode']=='fixed_flow':
+            raise InputError('翼熱モデルの冷却流量は正にしてください。')
         clean.append(row)
     if math.fsum(c["fraction"] for c in clean) > .4+1e-12:
         raise InputError("冷却抽気の合計は圧縮機入口流量の40%以下にしてください。")
-    if raw["enabled"] and any(c["fraction"] > 0 for c in clean):
+    sizing=[c for c in clean if c['thermal']['enabled'] and c['thermal']['mode']=='metal_limit']
+    if len(sizing)>1: raise InputError('翼温度からの流量逆算は同時に1流路までです。')
+    if raw['enabled'] and sizing and sum(c['fraction'] for c in clean if c is not sizing[0])+sizing[0]['thermal']['max_fraction']>.4+1e-12:
+        raise InputError('逆算上限を含めて抽気率合計を40%以下にしてください。')
+    if raw["enabled"] and (any(c["fraction"] > 0 for c in clean) or sizing):
         if thermo["model"] != "nasa9_frozen" or not elements["turbine"]["enabled"]:
             raise InputError("冷却空気はNASA物性・タービン要素モードで使用してください。")
     return {"enabled": raw["enabled"], "temperature_basis": raw["temperature_basis"], "combustor_exit_limit_k": limit, "circuits": clean}
@@ -181,8 +215,8 @@ def validate_staging(raw):
 
 
 def validate_input(raw):
-    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") not in (1, 2, 3, 4, 5):
-        raise InputError("入力のschema_versionは1〜5を指定してください。")
+    if not isinstance(raw, dict) or type(raw.get("schema_version")) is not int or raw.get("schema_version") not in (1, 2, 3, 4, 5, 6):
+        raise InputError("入力のschema_versionは1〜6を指定してください。")
     if set(raw) - {"schema_version", "mode", "name", "parameters", "context", "thermodynamics", "staging", "elements", "cooling"}:
         raise InputError("未対応の入力フィールドがあります。")
     if raw["schema_version"] < 3 and "staging" in raw:
@@ -206,7 +240,16 @@ def validate_input(raw):
     settings = {"model": settings["model"], "fuel": settings["fuel"], "fuel_hydrogen_mass_fraction": float(fraction)}
     if raw["schema_version"] < 5 and "cooling" in raw:
         raise InputError("冷却空気を追加する場合はschema_version=5にしてください。")
-    cooling = validate_cooling(raw.get("cooling") if raw["schema_version"] == 5 else default_cooling(), staging, elements, settings)
+    cooling_raw=copy_cooling=raw.get('cooling') if raw['schema_version']>=5 else default_cooling()
+    if raw['schema_version']==5 and isinstance(cooling_raw,dict):
+        import copy
+        copy_cooling=copy.deepcopy(cooling_raw)
+        if isinstance(copy_cooling.get('circuits'),list):
+            for circuit in copy_cooling['circuits']:
+                if isinstance(circuit,dict):
+                    if set(circuit) & {'thermal','pumping'}: raise InputError('翼熱・ポンピングはschema 6を指定してください。')
+                    circuit.update({k:cooling_circuit()[k] for k in ('thermal','pumping')})
+    cooling = validate_cooling(copy_cooling, staging, elements, settings)
     mode = raw.get("mode")
     if mode not in ("airflow", "target_power"):
         raise InputError("計算方法はairflowまたはtarget_powerを指定してください。")
@@ -241,7 +284,7 @@ def validate_input(raw):
     refs["source_revision"] = rev
     if (refs["component_id"] is not None or rev is not None) and refs["project_id"] is None:
         raise InputError("部品・リビジョンを指定する場合はproject_idも必要です。")
-    return {"schema_version": 5, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs, "thermodynamics": settings, "staging": staging, "elements": elements, "cooling": cooling}
+    return {"schema_version": 6, "mode": mode, "name": name.strip(), "parameters": clean, "context": refs, "thermodynamics": settings, "staging": staging, "elements": elements, "cooling": cooling}
 
 
 def input_hash(value):

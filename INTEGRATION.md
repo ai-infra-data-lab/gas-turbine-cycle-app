@@ -1,6 +1,6 @@
 # 独立計算モジュールの入出力契約
 
-Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.5.0` / schema_version: `5`。
+Module ID: `gt.cycle.simple_single_shaft` / Module version: `0.6.0` / schema_version: `6`。
 
 ## 呼出し
 
@@ -16,7 +16,7 @@ case = run_case(inputs)
 
 `model.default_input()` で完全な入力を取得し、`model.validate_input(input)` で検証。`engine.analyze(input)` は結果dict、`engine.run_case(input)` は実行メタデータ付きの交換用ケースを返します。計算エンジンはUI・DB・ネットワークを呼びません。入力を変更しません。
 
-すべてのparametersは有限の数値。パラメータ名に単位を含め、Pa・K・kg/s・W・J/kg・J/(kg K)を使用。効率・損失率は0〜1の小数。画面だけでkPa・kW・MJ/kg・%へ変換します。圧力比・燃空比は無次元。全圧は絶対圧、温度は全温（静止大気・低速排気境界を除く）。`shaft_speed_rpm` は任意の段平均径から周速・負荷係数を算出する際に使用します。サイクル性能には影響しません。
+すべてのparametersは有限の数値。パラメータ名に単位を含め、Pa・K・kg/s・W・J/kg・J/(kg K)を使用。効率・損失率は0〜1の小数。画面だけでkPa・kW・MJ/kg・%へ変換します。圧力比・燃空比は無次元。全圧は絶対圧、温度は全温（静止大気・低速排気境界を除く）。`shaft_speed_rpm` は冷却ポンピング仕事、および任意の段平均径による周速・負荷係数に使用します。ポンピング未使用では回転数だけでサイクル性能を変更しません。
 
 入力は `schema_version, name, mode, parameters, context, thermodynamics, staging, elements, cooling`。
 
@@ -86,3 +86,18 @@ modeは `airflow` または `target_power`。入力の欠落・未知のパラ�
 mixing要素はroute_indexでresult.cooling.routesへ対応。冷却流量、供給温度/圧力、必要供給圧、混合エネルギー残差、混合後組成を記録。圧縮機段のbleed_fractionとdownstream_mass_flow_factorは入口空気基準。energy_balance.cooling_external_heat_wは符号付きの外部熱。
 
 旧schema 1〜4は冷却なしとして正規化。旧v0.4.0ケースも入力を取り出して再計算できる。冷却率がすべて0なら従来計算をそのまま使う。ハッシュに冷却設定全体を含む。
+
+
+## v0.6: schema 6 の追加契約
+
+旧schema 1〜5と旧0.1〜0.5のケースJSONを取込可能。schema 5の冷却条件は維持し、各流路の`thermal`/`pumping`を未使用として移行。現在の入出力はschema 6、module_version 0.6.0。旧結果は再計算を要求する。
+
+- `cooling.circuits[].thermal`: enabled、mode（fixed_flow / metal_limit）、熱伝達率W/(m² K)、面積m²、厚さm、熱伝導率W/(m K)、film_effectiveness、metal_limit_k、min_fraction/max_fraction（入口空気基準の割合）。全フィールド名は`blade_cooling.thermal_defaults()`参照。
+- `cooling.circuits[].pumping`: enabled、inlet_radius_m/outlet_radius_m、inlet_swirl_ratio/outlet_swirl_ratio、isentropic_efficiency。半径は軸中心基準、旋回比は絶対Cθ/U。
+- 結果`cooling.routes[]`: circuit_index（元の流路配列の0始まり位置）、pre_pump_temperature_k/pressure_pa、pumping_specific_work_j_kg、pumping_power_w、thermal（伝熱量・金属/流体温度・余裕・判定・残差）。indexは正の抽気流だけを並べた結果配列の位置。
+- 逆算は`cooling.flow_sizing`: circuit_index、fraction（計算された抽気率）、status、metal_limit_k、requested_fraction。入力JSONのfractionは変更しない。結果routes[].input.fractionは実際の計算率を記録し、熱モードは内部の固定流量試行値となる。再現にはケースのトップレベルinputを使う。
+- metrics.cooling_pumping_power_w / blade_heat_transfer_w、energy_balance.cooling_pumping_power_wを追加。net_shaft_power_wは機械伝達後のガス仕事−圧縮機仕事−冷却ポンピング。
+- 熱力学効率の分子は正味流体仕事（ガスロータ仕事−ポンピング）、分母はポンプ前の個別入口仕事ポテンシャル。GasTurb内部の補正効率との同一性は保証しない。
+- `stage_results.turbine.elements[]`の混合点thermal、heat_entropy_generation_w_k、post_heat_mixing_entropy_generation_w_kで内部熱交換と混合を分離。既存entropy_generation_w_kは両者を含む節点全体値。
+
+全設定の出典・適用範囲と材料温度限界は統合側で設計情報として保持できる。実形状・実験相関への直接接続は未実装。管理アプリのDBは変更しない。

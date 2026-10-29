@@ -146,7 +146,7 @@ class CoolingTests(unittest.TestCase):
     def test_schema_four_migrates_with_no_cooling(self):
         raw=json.loads((Path(__file__).parent/'examples/elements_result.json').read_text(encoding='utf-8'))
         x=read_input_file(raw)
-        self.assertEqual(x['schema_version'],5)
+        self.assertEqual(x['schema_version'],6)
         self.assertFalse(x['cooling']['enabled'])
         self.assertAlmostEqual(analyze(x)['metrics']['net_electric_power_w'],raw['result']['metrics']['net_electric_power_w'],places=6)
 

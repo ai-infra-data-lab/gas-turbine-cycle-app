@@ -1,0 +1,12 @@
+{
+  "reference": "Cantera 3.2 NASA9 HP and entropy evaluation; separate heat/LMTD residuals",
+  "thermal_routes_checked": 3,
+  "maximum_errors": {
+    "pump_temperature_k": 5.684341886080802e-14,
+    "pump_pressure_relative": 3.3220537432043784e-11,
+    "heat_balance_w": 8.258211892098188e-10,
+    "heat_entropy_w_k": 1.943334382303874e-12,
+    "lmtd_balance_w": 5.317979230312631e-07
+  },
+  "limitations": "Shared NASA coefficients, solved cycle inlet states and thermal outlet temperatures. Checks state inversion and balances, not heat-transfer correlations, relative-frame rotating passages, 3D peak metal temperature or measured blade performance."
+}

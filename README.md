@@ -1,4 +1,4 @@
-# Cycle Studio 0.5 — 一軸シンプルサイクル
+# Cycle Studio 0.6 — 一軸シンプルサイクル
 
 定常・開放シンプルサイクルの設計点計算を行う独立アプリ。Python 3.10以上の標準ライブラリだけで動作し、インストール・インターネット接続・外部CDN・アカウントは不要です。
 
@@ -27,11 +27,17 @@ Python 3.10以上が必要です。追加Pythonパッケージのインストー
 - 入力・結果JSON、状態表CSV、保存ケースの読込と比較。入力変更後は結果の保存・書出しを無効化。
 - `data/cases.sqlite3` に明示保存。既存アプリ・管理DBは変更しない。
 
-## 冷却空気・抽気・混合（v0.5）
+## 翼金属温度・冷却流量逆算・ポンピング（v0.6）
+
+冷却流路ごとに熱抵抗（内外対流・金属・TBC）と等価並流LMTD熱交換を設定できます。指定流量から金属温度を計算し、1流路は許容翼温度から必要抽気率を逆算。熱伝達率・フィルム有効度は入力値です。ロータ冷却ポンピングは半径・旋回比・回転数によるEuler仕事と等価全圧効率で、空気の昇温/圧力上昇と軸動力消費へ反映します。
+
+「翼熱・ポンピングサンプルを設定」→再計算→「冷却・流量収支」下部。730 Kへの逆算例、式・効率定義・適用範囲は[BLADE_COOLING.md](BLADE_COOLING.md)。局所3D翼温度や相対回復温度の計算は含みません。
+
+## 冷却空気・抽気・混合（v0.5互換）
 
 圧縮機段出口からの抽気を最大12流路でタービン要素間へ戻せます。入口空気基準の抽気率、供給流路圧損・外部熱、注入段/位置、混合圧損・必要圧力余裕・流速を入力。抽気後の圧縮機仕事、燃焼器流量、混合後組成/温度、タービン仕事を再計算します。
 
-燃焼器出口/1段目ロータ入口の温度指定を選べます。冷却タービンの熱力学効率は単一入口ηttと別表示。NASA物性・タービン要素モードが必要です。翼伝熱・金属温度・冷却孔・ロータ遠心ポンピングは計算しません。
+燃焼器出口/1段目ロータ入口の温度指定を選べます。冷却タービンの熱力学効率は単一入口ηttと別表示。NASA物性・タービン要素モードが必要です。翼熱・金属温度・ポンピングはv0.6の等価モデルで追加できます。冷却孔・回転流路の詳細は計算しません。
 
 「冷却空気・抽気・混合」→「2段・2流路の冷却サンプルを設定」→再計算→「冷却・流量収支」で確認。[COOLING.md](COOLING.md)に計算定義・数値例・操作手順・制限を掲載。
 
@@ -91,4 +97,4 @@ python cli.py --input examples/nasa_target_100kw_input.json --output result-100k
 
 全ケースのバックアップは、終了後に `data/cases.sqlite3` をコピー。JSON・DBは暗号化していません。ケースは追加保存で既存の結果を上書きしません。
 
-`python -m unittest -v test_cycle.py test_nasa.py test_stages.py test_elements.py test_cooling.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。schema 3は段構成を維持し、schema 1〜3はいずれも要素モードなしで移行します。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。
+`python -m unittest -v test_cycle.py test_nasa.py test_stages.py test_elements.py test_cooling.py test_blade_cooling.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。schema 3は段構成を維持し、schema 1〜3はいずれも要素モードなしで移行します。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。

@@ -20,7 +20,7 @@ T_REF_K = 298.15
 
 def analyze(raw):
     inp = validate_input(raw)
-    if inp["cooling"]["enabled"] and any(c["fraction"] > 0 for c in inp["cooling"]["circuits"]):
+    if inp["cooling"]["enabled"] and any(c["fraction"] > 0 or (c["thermal"]["enabled"] and c["thermal"]["mode"]=="metal_limit") for c in inp["cooling"]["circuits"]):
         if __package__:
             from .cooling import analyze_cooled
         else:
@@ -159,7 +159,7 @@ def analyze(raw):
         if inp["elements"][key]["enabled"]:
             for station_index, local in ((start, stage_results[key]["states"][0]), (end, stage_results[key]["states"][-1])):
                 stations[station_index].update({k: value for k, value in local.items() if k not in ("id", "name", "fluid")})
-    result = {"schema_version": 5, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+    result = {"schema_version": 6, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
               "status": "success" if generating and net > 0 else "non_generating",
               "model": "nasa9_frozen_complete_combustion" if nasa else "constant_cp_ideal_gas_fuel_mass", "enthalpy_reference_temperature_k": T_REF_K,
               "thermodynamics": metadata,
@@ -178,7 +178,7 @@ def run_case(raw):
     inp = validate_input(raw)
     started = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
     result = analyze(inp)
-    return {"format": "gas-turbine-cycle-case", "schema_version": 5, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
+    return {"format": "gas-turbine-cycle-case", "schema_version": 6, "module_id": MODULE_ID, "module_version": MODULE_VERSION,
             "run_id": str(uuid.uuid4()), "started_at": started, "completed_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
             "input_hash": input_hash(inp), "input": inp, "result": result}
 
