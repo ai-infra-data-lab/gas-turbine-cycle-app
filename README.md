@@ -27,6 +27,14 @@ Python 3.10以上が必要です。追加Pythonパッケージのインストー
 - 入力・結果JSON、状態表CSV、保存ケースの読込と比較。入力変更後は結果の保存・書出しを無効化。
 - `data/cases.sqlite3` に明示保存。既存アプリ・管理DBは変更しない。
 
+## 軸締結の概略強度設計（独立モジュール0.1）
+
+画面上部「軸締結強度」または`http://127.0.0.1:8780/shaft-joints`。スプライン/カービックの平均歯面圧、歯元曲げ・せん断・相当応力、軸断面、ハブ周応力、カービックの分離力・保持締付力・ボルト群引張を評価。必要かみ合い長さ、必要組立締付力、現在条件の許容公称トルクを計算します。
+
+`gt.mechanical.shaft_joint` / version 0.1.0 / schema 1。許容応力・材質/温度/根拠を入力する概略静強度モデル。AGMA/Gleasonの規格認証計算、局所接触FEA、疲労寿命は含みません。保存サイクルの軸位置を選び動力・回転数を取り込めます。ケースは`data/cases.shaft-joints.sqlite3`に独立保存。
+
+[SHAFT_JOINTS.md](SHAFT_JOINTS.md)に理論・入力定義・数値サンプル・操作手順。`examples/joint_*`に基準内/超過/離間の仮定入力・結果を同梱。CLIは`python shaft_joints.py --kind curvic --output curvic-result.json`。
+
 ## 翼金属温度・冷却流量逆算・ポンピング（v0.6）
 
 冷却流路ごとに熱抵抗（内外対流・金属・TBC）と等価並流LMTD熱交換を設定できます。指定流量から金属温度を計算し、1流路は許容翼温度から必要抽気率を逆算。熱伝達率・フィルム有効度は入力値です。ロータ冷却ポンピングは半径・旋回比・回転数によるEuler仕事と等価全圧効率で、空気の昇温/圧力上昇と軸動力消費へ反映します。
@@ -97,4 +105,4 @@ python cli.py --input examples/nasa_target_100kw_input.json --output result-100k
 
 全ケースのバックアップは、終了後に `data/cases.sqlite3` をコピー。JSON・DBは暗号化していません。ケースは追加保存で既存の結果を上書きしません。
 
-`python -m unittest -v test_cycle.py test_nasa.py test_stages.py test_elements.py test_cooling.py test_blade_cooling.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。schema 3は段構成を維持し、schema 1〜3はいずれも要素モードなしで移行します。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。
+`python -m unittest -v test_cycle.py test_nasa.py test_stages.py test_elements.py test_cooling.py test_blade_cooling.py test_shaft_joints.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。schema 3は段構成を維持し、schema 1〜3はいずれも要素モードなしで移行します。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。

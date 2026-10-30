@@ -14,11 +14,15 @@ if __package__:
     from .model import MODULE_ID, MODULE_VERSION, default_input, ui_schema, validate_input, element_stage, cooling_circuit
     from .storage import CaseStore
     from .thermo import provenance, FUEL_NAMES
+    from . import shaft_joints as joints
+    from .joint_store import JointStore
 else:
     from engine import run_case, sweep
     from model import MODULE_ID, MODULE_VERSION, default_input, ui_schema, validate_input, element_stage, cooling_circuit
     from storage import CaseStore
     from thermo import provenance, FUEL_NAMES
+    import shaft_joints as joints
+    from joint_store import JointStore
 
 ROOT = Path(__file__).resolve().parent
 TOKEN = secrets.token_urlsafe(32)
@@ -61,9 +65,14 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path.path == "/":
                 return self.send(200, (ROOT / "static/index.html").read_text(encoding="utf-8").replace("__TOKEN__", TOKEN), "text/html; charset=utf-8")
+            if path.path == '/shaft-joints':
+                return self.send(200,(ROOT/'static/joints.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
             static = {"/app.js": ("static/app.js", "text/javascript; charset=utf-8"),
                       "/style.css": ("static/style.css", "text/css; charset=utf-8"),
-                      "/guide": ("static/guide.html", "text/html; charset=utf-8")}
+                      "/guide": ("static/guide.html", "text/html; charset=utf-8"),
+                      '/joints.js':('static/joints.js','text/javascript; charset=utf-8'),
+                      '/joints.css':('static/joints.css','text/css; charset=utf-8'),
+                      '/shaft-joints/guide':('static/joints-guide.html','text/html; charset=utf-8')}
             if path.path in static:
                 name, mime = static[path.path]
                 return self.send(200, (ROOT / name).read_bytes(), mime)
@@ -74,6 +83,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json(self.server.store.list())
             if path.path == "/api/case":
                 return self.json(self.server.store.get(query.get("id", [""])[0]))
+            if path.path == '/api/joints/schema':
+                return self.json({'module_id':joints.MODULE_ID,'module_version':joints.MODULE_VERSION,
+                                  'fields':{k:joints.schema(k) for k in ('spline','curvic')},
+                                  'defaults':{k:joints.default_input(k) for k in ('spline','curvic')}})
+            if path.path == '/api/joints/cases': return self.json(self.server.joint_store.list())
+            if path.path == '/api/joints/case': return self.json(self.server.joint_store.get(query.get('id',[''])[0]))
             return self.json({"error": "見つかりません。"}, 404)
         except (ValueError, LookupError) as exc:
             return self.json({"error": str(exc)}, 404)
@@ -101,8 +116,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json(sweep(data.get("input"), data.get("minimum", 1.2), data.get("maximum", 20), data.get("count", 31)))
             if self.path == "/api/import":
                 return self.json({"input": read_input_file(data.get("document")), "note": "入力だけを取り込みました。結果は再計算してください。"})
+            if self.path == '/api/joints/calculate': return self.json(joints.run_case(data.get('input')))
+            if self.path == '/api/joints/save': return self.json(self.server.joint_store.save(joints.run_case(data.get('input'))))
+            if self.path == '/api/joints/import': return self.json({'input':joints.read_input_file(data.get('document'))})
+            if self.path == '/api/joints/cycle-load':
+                case=self.server.store.get(data.get('case_id',''))
+                return self.json(joints.cycle_load(case,data.get('position')))
             return self.json({"error": "見つかりません。"}, 404)
-        except (ValueError, TypeError, KeyError, OverflowError) as exc:
+        except (ValueError, TypeError, KeyError, OverflowError, LookupError) as exc:
             self.json({"error": str(exc)}, 400)
         except sqlite3.Error:
             traceback.print_exc()
@@ -112,6 +133,8 @@ class Handler(BaseHTTPRequestHandler):
 def make_server(data_path, port=0):
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.store = CaseStore(data_path)
+    joint_path=Path(data_path).with_name(Path(data_path).stem+'.shaft-joints.sqlite3')
+    server.joint_store=JointStore(joint_path)
     return server
 
 

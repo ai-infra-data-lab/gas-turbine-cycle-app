@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "kind": "curvic",
+  "name": "カービック・締付20kN・離間例",
+  "context": {
+    "project_id": null,
+    "component_id": null,
+    "source_revision": null
+  },
+  "load": {
+    "torque_n_m": 500.0,
+    "power_w": 314159.2653589793,
+    "speed_rpm": 6000.0,
+    "axial_force_n": 1000.0,
+    "bending_moment_n_m": 50.0,
+    "service_factor": 1.5,
+    "mode": "torque",
+    "source_note": "操作説明用の仮定荷重。実機未検証。"
+  },
+  "geometry": {
+    "tooth_count": 24,
+    "root_thickness_a_m": 0.005,
+    "root_thickness_b_m": 0.0055,
+    "lever_arm_a_m": 0.002,
+    "lever_arm_b_m": 0.002,
+    "shaft_outer_m": 0.05,
+    "shaft_inner_m": 0.02,
+    "outer_diameter_m": 0.1,
+    "inner_diameter_m": 0.07,
+    "flank_height_m": 0.004,
+    "pressure_angle_deg": 30.0
+  },
+  "factors": {
+    "engaged_fraction": 0.5,
+    "face_load_factor": 1.2,
+    "required_safety": 1.5,
+    "shaft_k_bending": 1.5,
+    "shaft_k_torsion": 1.3
+  },
+  "material": {
+    "temperature_k": 500.0,
+    "contact_allowable_pa": 250000000.0,
+    "bending_allowable_pa": 300000000.0,
+    "shear_allowable_pa": 180000000.0,
+    "root_equivalent_allowable_pa": 350000000.0,
+    "shaft_equivalent_allowable_pa": 350000000.0,
+    "hub_hoop_allowable_pa": 250000000.0,
+    "basis": "操作説明用の仮定許容値。材質・熱処理・温度・寿命に対する適用は未検証。"
+  },
+  "clamp": {
+    "preload_n": 20000,
+    "scatter_fraction": 0.1,
+    "relaxation_fraction": 0.1,
+    "thermal_change_n": -5000.0,
+    "separation_factor": 1.75,
+    "bolt_tensile_area_m2": 0.00025,
+    "bolt_load_fraction": 0.2,
+    "bolt_allowable_pa": 700000000.0
+  }
+}

@@ -101,3 +101,12 @@ mixing要素はroute_indexでresult.cooling.routesへ対応。冷却流量、供
 - `stage_results.turbine.elements[]`の混合点thermal、heat_entropy_generation_w_k、post_heat_mixing_entropy_generation_w_kで内部熱交換と混合を分離。既存entropy_generation_w_kは両者を含む節点全体値。
 
 全設定の出典・適用範囲と材料温度限界は統合側で設計情報として保持できる。実形状・実験相関への直接接続は未実装。管理アプリのDBは変更しない。
+
+
+## 独立モジュール: 軸締結の概略静強度
+
+`shaft_joints.py`はcycleとは別の`gt.mechanical.shaft_joint` / module_version 0.1.0 / schema 1。`default_input(kind)`, `validate_input`, `analyze`, `run_case`, `read_input_file`を公開。kindはspline/curvic。入出力全量・単位・安全率・対象外事項は`SHAFT_JOINTS.md`。サイクルのmodule_version/schemaは変更しない。
+
+入力はschema_version/kind/name/context/load/geometry/factors/material、curvicはclampを追加。fieldsとdefaultは`/api/joints/schema`から取得。結果チェックはdemand/allowable（SI）、required_safety、safety_factor、margin、utilization、passed。statusはwithin_preliminary_limits/exceeds_preliminary_limitsで、規格適合や実機安全を表さない。
+
+ケース形式はgas-turbine-shaft-joint-case。案件・部品UUID・元リビジョンをcycleと同じcontext形式で保持。トルク・材料許容値の出典を入力文字列で記録し、SHA-256で正規化入力全量を識別する。保存は別DBファイル、cycle/管理アプリのDBには計算結果を書き込まない。サイクル荷重取込では保存ケースID・入力ハッシュ・軸位置をsource_noteへ保持する。

@@ -1,0 +1,5 @@
+﻿sample,status,nominal_torque_N_m,design_torque_N_m,allowable_nominal_torque_N_m,maximum_utilization,governing_check
+joint_spline,within_preliminary_limits,500.0,750.0,1200.0000000012,0.41666666666666674,root_bending_a
+joint_curvic,within_preliminary_limits,500.0,750.0,636.6546038921671,0.9721537979975376,bearing
+joint_spline_overload,exceeds_preliminary_limits,1300.0,1950.0,1200.0000000012,1.0833333333333335,root_bending_a
+joint_curvic_separation,exceeds_preliminary_limits,500.0,750.0,42.84985202604216,2.4555280937115245,clamp_reserve

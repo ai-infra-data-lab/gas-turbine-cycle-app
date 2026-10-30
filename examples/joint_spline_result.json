@@ -1,0 +1,229 @@
+{
+  "format": "gas-turbine-shaft-joint-case",
+  "schema_version": 1,
+  "module_id": "gt.mechanical.shaft_joint",
+  "module_version": "0.1.0",
+  "run_id": "6e2ed5d5-e1b4-48a2-9761-22a3900cf166",
+  "started_at": "2026-10-30T11:56:22.887+00:00",
+  "completed_at": "2026-10-30T11:56:22.888+00:00",
+  "input_hash": "762dd69c8b06e399a8c6fc225fbdf5bb3b0c473c44dc65f5b69073affd9e449e",
+  "input": {
+    "schema_version": 1,
+    "kind": "spline",
+    "name": "スプライン・仮定入力サンプル",
+    "load": {
+      "torque_n_m": 500.0,
+      "power_w": 314159.2653589793,
+      "speed_rpm": 6000.0,
+      "axial_force_n": 1000.0,
+      "bending_moment_n_m": 50.0,
+      "service_factor": 1.5,
+      "mode": "torque",
+      "source_note": "操作説明用の仮定荷重。実機未検証。"
+    },
+    "geometry": {
+      "tooth_count": 24,
+      "root_thickness_a_m": 0.003,
+      "root_thickness_b_m": 0.0035,
+      "lever_arm_a_m": 0.0015,
+      "lever_arm_b_m": 0.0015,
+      "shaft_outer_m": 0.05,
+      "shaft_inner_m": 0.02,
+      "pitch_diameter_m": 0.06,
+      "engagement_length_m": 0.03,
+      "engagement_height_m": 0.002,
+      "pressure_angle_deg": 30.0,
+      "hub_inner_m": 0.066,
+      "hub_outer_m": 0.1
+    },
+    "factors": {
+      "engaged_fraction": 0.5,
+      "face_load_factor": 1.2,
+      "required_safety": 1.5,
+      "shaft_k_bending": 1.5,
+      "shaft_k_torsion": 1.3
+    },
+    "material": {
+      "temperature_k": 500.0,
+      "contact_allowable_pa": 250000000.0,
+      "bending_allowable_pa": 300000000.0,
+      "shear_allowable_pa": 180000000.0,
+      "root_equivalent_allowable_pa": 350000000.0,
+      "shaft_equivalent_allowable_pa": 350000000.0,
+      "hub_hoop_allowable_pa": 250000000.0,
+      "basis": "操作説明用の仮定許容値。材質・熱処理・温度・寿命に対する適用は未検証。"
+    },
+    "context": {
+      "project_id": null,
+      "component_id": null,
+      "source_revision": null
+    }
+  },
+  "result": {
+    "status": "within_preliminary_limits",
+    "checks": [
+      {
+        "key": "hub_hoop",
+        "label": "ハブ内面の等価周応力",
+        "demand": 5902157.070554385,
+        "allowable": 250000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 42.357395272863805,
+        "margin": 27.238263515242533,
+        "utilization": 0.035412942423326314,
+        "passed": true
+      },
+      {
+        "key": "bearing",
+        "label": "平均歯面圧（局所接触応力ではない）",
+        "demand": 41666666.66666667,
+        "allowable": 250000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 5.999999999999999,
+        "margin": 2.999999999999999,
+        "utilization": 0.25000000000000006,
+        "passed": true
+      },
+      {
+        "key": "root_bending_a",
+        "label": "部材A 歯元曲げ",
+        "demand": 83333333.33333334,
+        "allowable": 300000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 3.5999999999999996,
+        "margin": 1.3999999999999995,
+        "utilization": 0.41666666666666674,
+        "passed": true
+      },
+      {
+        "key": "root_shear_a",
+        "label": "部材A 歯元せん断",
+        "demand": 27777777.77777778,
+        "allowable": 180000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 6.4799999999999995,
+        "margin": 3.3199999999999994,
+        "utilization": 0.2314814814814815,
+        "passed": true
+      },
+      {
+        "key": "root_equivalent_a",
+        "label": "部材A 歯元相当応力",
+        "demand": 96225044.86493763,
+        "allowable": 350000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 3.637306695894642,
+        "margin": 1.4248711305964283,
+        "utilization": 0.41239304942116123,
+        "passed": true
+      },
+      {
+        "key": "root_bending_b",
+        "label": "部材B 歯元曲げ",
+        "demand": 61224489.79591836,
+        "allowable": 300000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 4.9,
+        "margin": 2.2666666666666666,
+        "utilization": 0.30612244897959184,
+        "passed": true
+      },
+      {
+        "key": "root_shear_b",
+        "label": "部材B 歯元せん断",
+        "demand": 23809523.80952381,
+        "allowable": 180000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 7.56,
+        "margin": 4.039999999999999,
+        "utilization": 0.19841269841269843,
+        "passed": true
+      },
+      {
+        "key": "root_equivalent_b",
+        "label": "部材B 歯元相当応力",
+        "demand": 73818144.2660228,
+        "allowable": 350000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 4.741381722340301,
+        "margin": 2.1609211482268673,
+        "utilization": 0.316363475425812,
+        "passed": true
+      },
+      {
+        "key": "shaft_equivalent",
+        "label": "軸危険断面の相当応力",
+        "demand": 71430508.92546557,
+        "allowable": 350000000.0,
+        "unit": "Pa",
+        "required_safety": 1.5,
+        "safety_factor": 4.899867091318204,
+        "margin": 2.2665780608788033,
+        "utilization": 0.30613075253770955,
+        "passed": true
+      }
+    ],
+    "governing_check": "root_bending_a",
+    "maximum_utilization": 0.41666666666666674,
+    "nominal_torque_n_m": 500.0,
+    "design_torque_n_m": 750.0,
+    "tangential_force_n": 25000.0,
+    "effective_tooth_count": 12.0,
+    "tooth_peak_tangential_force_n": 2500.0,
+    "mean_load_radius_m": 0.03,
+    "effective_face_width_m": 0.03,
+    "roots": [
+      {
+        "member": "a",
+        "bending_pa": 83333333.33333334,
+        "shear_pa": 27777777.77777778,
+        "axial_compression_pa": 0.0,
+        "equivalent_pa": 96225044.86493763
+      },
+      {
+        "member": "b",
+        "bending_pa": 61224489.79591836,
+        "shear_pa": 23809523.80952381,
+        "axial_compression_pa": 0.0,
+        "equivalent_pa": 73818144.2660228
+      }
+    ],
+    "shaft_normal_stress_pa": 10772359.202377547,
+    "shaft_shear_stress_pa": 40768753.895460874,
+    "radial_force_magnitude_sum_n": 14433.756729740644,
+    "hub_equivalent_internal_pressure_pa": 2320407.8090142766,
+    "allowable_nominal_torque_n_m": 1200.0000000012,
+    "capacity_lower_bound_n_m": null,
+    "capacity_basis": "fixed_geometry_and_other_loads",
+    "module_id": "gt.mechanical.shaft_joint",
+    "module_version": "0.1.0",
+    "qualifications": [
+      "概略静強度評価。規格準拠・実機安全・寿命を保証する判定ではありません。",
+      "平均歯面圧と矩形歯の片持ち梁近似。Hertz接触、曲面接触、歯元フィレット、歯当たり、フレッティング、疲労、クリープ、回転遠心応力、熱応力は未評価。",
+      "許容応力は指定温度で入力した弱い部材側の値を使用。材質・熱処理・寿命から自動設定しません。",
+      "許容トルクは現在の軸力・曲げ・締付条件を固定した値。動力からのトルクは選択した軸位置でのみ使用。"
+    ],
+    "references": [
+      {
+        "title": "NASA SP-8101, Liquid Rocket Engine Turbopump Shafts and Couplings, §§3.3.1–3.3.2",
+        "url": "https://ntrs.nasa.gov/api/citations/19740006328/downloads/19740006328.pdf",
+        "use": "Spline tooth-load sharing, curvic separating forces/preload and need for detailed final stress analysis. Not a reproduced rating formula."
+      },
+      {
+        "title": "AGMA 945-1-B20, Splines – Design and Application (scope only)",
+        "url": "https://members.agma.org/MyAGMA/MyAGMA/Store/Item_Detail.aspx?Category=STANDARDS&iProductCode=945_1_B20",
+        "use": "Lists compressive/shear/bending/hoop rating scope. Full paid equations are not implemented; no standards-compliance claim."
+      }
+    ],
+    "minimum_engagement_length_m": 0.012500000000000002,
+    "shaft_check_passed": true
+  }
+}
