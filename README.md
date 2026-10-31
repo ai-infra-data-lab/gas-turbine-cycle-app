@@ -106,3 +106,7 @@ python cli.py --input examples/nasa_target_100kw_input.json --output result-100k
 全ケースのバックアップは、終了後に `data/cases.sqlite3` をコピー。JSON・DBは暗号化していません。ケースは追加保存で既存の結果を上書きしません。
 
 `python -m unittest -v test_cycle.py test_nasa.py test_stages.py test_elements.py test_cooling.py test_blade_cooling.py test_shaft_joints.py` で計算・保存・HTTPを検証します。HTTP接続は実行環境によって許可が必要な場合があります。NASA例は`examples/nasa_*`、旧schema 1の例は既存の`flow_*`と`target_100kw_*`です。schema 1の旧JSONは比熱一定、schema 2は元の物性モデルを維持して移行し、どちらも段構成は各1段になります。schema 3は段構成を維持し、schema 1〜3はいずれも要素モードなしで移行します。旧結果は再計算します。独立ライブラリCanteraによる照合記録は`reference/nasa9_cantera_validation.json`です。実施結果・画面確認の範囲は `VERIFICATION.md` を参照。
+
+## 試験データ評価
+
+サイクル画面上部「試験データ評価」から、UTF-8計測CSVの区間集計、運転条件での再計算、計測と計算の比較、計器・不確かさ・許容差・校正と検証の分離を扱えます。原CSVと結果を専用DBへ追記保存。数値入りの仮想試験を同梱しています。操作と制限は [TEST_EVALUATION.md](TEST_EVALUATION.md) を参照。

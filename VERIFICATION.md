@@ -198,3 +198,12 @@ Python構文、`node --check static/app.js` を確認。CLIによる既定条件
 ## 精度・範囲
 
 比熱一定モデルでの内部整合性を確認した。温度依存物性、化学平衡、実機データ、GasTurb/PROOSIS等との比較、非設計点、性能マップ、過渡・制御、軸系マッチングは検証対象外。既存管理アプリのDB・コードは変更していない。将来の接続は `INTEGRATION.md` の契約に基づいて別途実装する。
+
+## 2026-10-31 試験データ評価
+
+- 既存106件と新規15件の計121件が成功（64.190 s）。コマンド: `python -m unittest test_cycle.py test_nasa.py test_stages.py test_elements.py test_cooling.py test_blade_cooling.py test_shaft_joints.py test_evaluation.py`。
+- 新規テストは手計算による平均・標本標準偏差・直線傾き・U合成、ゲージ圧と単位、欠損、単点、CSV不整合、計算条件からの直接拘束・校正データの除外、原CSVのBOM/CRLFとSHA-256、入力不変性、API再計算・専用DB保存復元・トークン拒否・異種JSON拒否を検証。
+- 最初の制限環境ではlocalhost接続がWinError 10013になったため、許可済みlocalhost通信のテストを制限外で実行した。
+- `node --check static/evaluation.js` 成功。
+- 現在のWork設定がLocal browser use disabledのため、この追加画面のブラウザー実操作・レイアウト・ファイルアップロード/ダウンロード操作は未検証。HTTP配信と保存復元はAPI自動テストで検証済み。
+- サンプルは実機から独立した仮想試験。実機精度、規格準拠、不確かさモデルの妥当性は証明しない。

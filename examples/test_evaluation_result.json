@@ -1,0 +1,949 @@
+{
+  "format": "gas-turbine-test-evaluation",
+  "schema_version": 1,
+  "module_id": "gt.evaluation.test_comparison",
+  "module_version": "0.1.0",
+  "run_id": "3b4ac2e9-75c4-4210-ab3e-41b8fe20ac67",
+  "completed_at": "2026-10-31T07:29:56.661+00:00",
+  "input_hash": "965d5e381a74fac40323ce7b0aa1fae7cf8787cd0c3cafb26c2fa351f47241f1",
+  "input": {
+    "schema_version": 1,
+    "name": "仮想試験・定常60〜100秒",
+    "source_name": "fictional-test.csv",
+    "notes": "すべて仮想計測値。検証方法の操作例です。",
+    "baseline_source": "既定NASA9設計点",
+    "calibrated_model": false,
+    "calibration_note": "",
+    "baseline_input": {
+      "schema_version": 6,
+      "mode": "airflow",
+      "name": "小型GT・設計点サンプル",
+      "parameters": {
+        "ambient_temperature_k": 288.15,
+        "ambient_pressure_pa": 101325.0,
+        "air_mass_flow_kg_s": 1.2,
+        "target_net_power_w": 100000.0,
+        "shaft_speed_rpm": 60000.0,
+        "compressor_pressure_ratio": 3.8,
+        "turbine_inlet_temperature_k": 1123.0,
+        "compressor_efficiency": 0.78,
+        "turbine_efficiency": 0.85,
+        "combustion_efficiency": 0.99,
+        "mechanical_efficiency": 0.98,
+        "generator_efficiency": 0.95,
+        "inlet_pressure_loss": 0.01,
+        "combustor_pressure_loss": 0.04,
+        "exhaust_pressure_loss": 0.02,
+        "fuel_lhv_j_kg": 50000000.0,
+        "auxiliary_power_w": 2000.0,
+        "cp_air_j_kg_k": 1005.0,
+        "cp_gas_j_kg_k": 1150.0,
+        "r_air_j_kg_k": 287.05,
+        "r_gas_j_kg_k": 287.05
+      },
+      "context": {
+        "project_id": null,
+        "component_id": null,
+        "source_revision": null
+      },
+      "thermodynamics": {
+        "model": "nasa9_frozen",
+        "fuel": "methane",
+        "fuel_hydrogen_mass_fraction": 0.25
+      },
+      "staging": {
+        "compressor": {
+          "count": 1,
+          "distribution": "pressure",
+          "weights": [
+            1.0
+          ],
+          "mean_diameters_m": null
+        },
+        "turbine": {
+          "count": 1,
+          "distribution": "pressure",
+          "weights": [
+            1.0
+          ],
+          "mean_diameters_m": null
+        }
+      },
+      "elements": {
+        "compressor": {
+          "enabled": false,
+          "inlet_velocity_m_s": 60.0,
+          "stages": [
+            {
+              "rotor_efficiency": 0.84,
+              "rotor_exit_velocity_m_s": 200.0,
+              "diffuser": {
+                "enabled": true,
+                "model": "cp",
+                "coefficient": 0.6,
+                "exit_velocity_m_s": 100.0
+              },
+              "return_channel": {
+                "enabled": true,
+                "model": "loss",
+                "coefficient": 0.15,
+                "exit_velocity_m_s": 60.0
+              }
+            }
+          ]
+        },
+        "turbine": {
+          "enabled": false,
+          "inlet_velocity_m_s": 60.0,
+          "stages": [
+            {
+              "rotor_efficiency": 0.9,
+              "rotor_exit_velocity_m_s": 100.0,
+              "diffuser": {
+                "enabled": true,
+                "model": "loss",
+                "coefficient": 0.1,
+                "exit_velocity_m_s": 60.0
+              },
+              "nozzle": {
+                "enabled": true,
+                "model": "loss",
+                "coefficient": 0.04,
+                "exit_velocity_m_s": 200.0
+              }
+            }
+          ]
+        }
+      },
+      "cooling": {
+        "enabled": false,
+        "temperature_basis": "combustor_exit",
+        "combustor_exit_limit_k": 2400.0,
+        "circuits": []
+      }
+    },
+    "time_column": "time_s",
+    "start_s": 60.0,
+    "end_s": 100.0,
+    "channels": [
+      {
+        "column": "ambient_C",
+        "role": "condition",
+        "unit": "degC",
+        "definition": "total_temperature",
+        "parameter": "ambient_temperature_k",
+        "target": null,
+        "measurement_u": 0.5,
+        "model_u": 0.5,
+        "absolute_tolerance": 1.0,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 ambient_C",
+        "calibration_date": "仮想・未校正",
+        "location": "ambient_C / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      },
+      {
+        "column": "ambient_kPa",
+        "role": "condition",
+        "unit": "kPa",
+        "definition": "absolute_total_pressure",
+        "parameter": "ambient_pressure_pa",
+        "target": null,
+        "measurement_u": 0.1,
+        "model_u": 0.1,
+        "absolute_tolerance": 0.2,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 ambient_kPa",
+        "calibration_date": "仮想・未校正",
+        "location": "ambient_kPa / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      },
+      {
+        "column": "air_kg_s",
+        "role": "condition",
+        "unit": "kg/s",
+        "definition": "mass_flow",
+        "parameter": "air_mass_flow_kg_s",
+        "target": null,
+        "measurement_u": 0.01,
+        "model_u": 0.01,
+        "absolute_tolerance": 0.02,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 air_kg_s",
+        "calibration_date": "仮想・未校正",
+        "location": "air_kg_s / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      },
+      {
+        "column": "T2_C",
+        "role": "validation",
+        "unit": "degC",
+        "definition": "total_temperature",
+        "parameter": null,
+        "target": "station:2:total_temperature_k",
+        "measurement_u": 2.0,
+        "model_u": 2.0,
+        "absolute_tolerance": 4.0,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 T2_C",
+        "calibration_date": "仮想・未校正",
+        "location": "T2_C / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      },
+      {
+        "column": "P2_kPa",
+        "role": "validation",
+        "unit": "kPa",
+        "definition": "absolute_total_pressure",
+        "parameter": null,
+        "target": "station:2:total_pressure_pa",
+        "measurement_u": 2.0,
+        "model_u": 2.0,
+        "absolute_tolerance": 4.0,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 P2_kPa",
+        "calibration_date": "仮想・未校正",
+        "location": "P2_kPa / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      },
+      {
+        "column": "T4_C",
+        "role": "validation",
+        "unit": "degC",
+        "definition": "total_temperature",
+        "parameter": null,
+        "target": "station:4:total_temperature_k",
+        "measurement_u": 4.0,
+        "model_u": 4.0,
+        "absolute_tolerance": 8.0,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 T4_C",
+        "calibration_date": "仮想・未校正",
+        "location": "T4_C / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      },
+      {
+        "column": "fuel_kg_h",
+        "role": "validation",
+        "unit": "kg/h",
+        "definition": "mass_flow",
+        "parameter": null,
+        "target": "metric:fuel_mass_flow_kg_s",
+        "measurement_u": 0.4,
+        "model_u": 0.4,
+        "absolute_tolerance": 0.8,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 fuel_kg_h",
+        "calibration_date": "仮想・未校正",
+        "location": "fuel_kg_h / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      },
+      {
+        "column": "electric_kW",
+        "role": "validation",
+        "unit": "kW",
+        "definition": "power",
+        "parameter": null,
+        "target": "metric:net_electric_power_w",
+        "measurement_u": 2.0,
+        "model_u": 2.0,
+        "absolute_tolerance": 4.0,
+        "relative_tolerance_pct": 1.0,
+        "instrument": "仮想計器 electric_kW",
+        "calibration_date": "仮想・未校正",
+        "location": "electric_kW / 定義を確認済み（全温・全圧・軸流量）",
+        "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+        "gauge_reference_pa": 101325
+      }
+    ],
+    "csv_text": "time_s,ambient_C,ambient_kPa,air_kg_s,T2_C,P2_kPa,T4_C,fuel_kg_h,electric_kW\n0,15,101.325,1.2,168.34704529934106,378.18465,583.5428657699009,67.20539542357223,139.9582503177146\n20,15,101.325,1.2,178.34704529934106,379.18465,593.5428657699009,67.50539542357222,140.9582503177146\n40,15,101.325,1.2,184.34704529934106,379.78465,599.5428657699009,67.68539542357222,141.5582503177146\n60,15,101.325,1.2,187.34704529934106,380.08464999999995,602.5428657699009,67.77539542357222,141.8582503177146\n70,15,101.325,1.2,188.84704529934106,380.23465,604.0428657699009,67.82039542357222,142.0082503177146\n80,15,101.325,1.2,188.34704529934106,380.18465,603.5428657699009,,141.9582503177146\n90,15,101.325,1.2,187.84704529934106,380.13464999999997,603.0428657699009,67.79039542357222,141.9082503177146\n100,15,101.325,1.2,189.34704529934106,380.28465,604.5428657699009,67.83539542357222,142.0582503177146\n120,15,101.325,1.2,198.34704529934106,381.18465,613.5428657699009,68.10539542357222,142.9582503177146\n"
+  },
+  "result": {
+    "status": "evaluated",
+    "source_sha256": "928931ec01c0f1b8536e4f320950b76adb303f009548438174da95fc2c46e993",
+    "total_rows": 9,
+    "selected_rows": 5,
+    "applied_parameters": [
+      "ambient_temperature_k",
+      "ambient_pressure_pa",
+      "air_mass_flow_kg_s"
+    ],
+    "comparisons": [
+      {
+        "column": "ambient_C",
+        "n": 5,
+        "missing_or_invalid": 0,
+        "mean_si": 288.15,
+        "stddev_si": 0.0,
+        "minimum_si": 288.15,
+        "maximum_si": 288.15,
+        "slope_si_per_s": 0.0,
+        "scale": 1,
+        "role": "condition",
+        "unit": "degC",
+        "definition": "total_temperature",
+        "target": null,
+        "independent": false,
+        "label": "大気温度",
+        "si_unit": "K",
+        "status": "condition",
+        "parameter": "ambient_temperature_k"
+      },
+      {
+        "column": "ambient_kPa",
+        "n": 5,
+        "missing_or_invalid": 0,
+        "mean_si": 101325.0,
+        "stddev_si": 0.0,
+        "minimum_si": 101325.0,
+        "maximum_si": 101325.0,
+        "slope_si_per_s": 0.0,
+        "scale": 1000,
+        "role": "condition",
+        "unit": "kPa",
+        "definition": "absolute_total_pressure",
+        "target": null,
+        "independent": false,
+        "label": "大気絶対圧",
+        "si_unit": "Pa",
+        "status": "condition",
+        "parameter": "ambient_pressure_pa"
+      },
+      {
+        "column": "air_kg_s",
+        "n": 5,
+        "missing_or_invalid": 0,
+        "mean_si": 1.2,
+        "stddev_si": 0.0,
+        "minimum_si": 1.2,
+        "maximum_si": 1.2,
+        "slope_si_per_s": 0.0,
+        "scale": 1,
+        "role": "condition",
+        "unit": "kg/s",
+        "definition": "mass_flow",
+        "target": null,
+        "independent": false,
+        "label": "圧縮機入口全空気流量",
+        "si_unit": "kg/s",
+        "status": "condition",
+        "parameter": "air_mass_flow_kg_s"
+      },
+      {
+        "column": "T2_C",
+        "n": 5,
+        "missing_or_invalid": 0,
+        "mean_si": 461.49704529934104,
+        "stddev_si": 0.7905694150420949,
+        "minimum_si": 460.49704529934104,
+        "maximum_si": 462.49704529934104,
+        "slope_si_per_s": 0.03,
+        "scale": 1,
+        "role": "validation",
+        "unit": "degC",
+        "definition": "total_temperature",
+        "target": "station:2:total_temperature_k",
+        "independent": true,
+        "label": "station / 圧縮機出口 / 全温",
+        "predicted_si": 458.49704529934104,
+        "si_unit": "K",
+        "difference_si": 3.0,
+        "difference_pct": 0.6543117411021431,
+        "measurement_u_si": 2.0,
+        "model_u_si": 2.0,
+        "combined_u_si": 2.8284271247461903,
+        "normalized_difference": 1.0606601717798212,
+        "tolerance_si": 4.58497045299341,
+        "within_tolerance": true,
+        "within_uncertainty": false,
+        "status": "independent_comparison"
+      },
+      {
+        "column": "P2_kPa",
+        "n": 5,
+        "missing_or_invalid": 0,
+        "mean_si": 380184.64999999997,
+        "stddev_si": 79.0569415042279,
+        "minimum_si": 380084.64999999997,
+        "maximum_si": 380284.65,
+        "slope_si_per_s": 3.000000000001164,
+        "scale": 1000,
+        "role": "validation",
+        "unit": "kPa",
+        "definition": "absolute_total_pressure",
+        "target": "station:2:total_pressure_pa",
+        "independent": true,
+        "label": "station / 圧縮機出口 / 絶対全圧",
+        "predicted_si": 381184.64999999997,
+        "si_unit": "Pa",
+        "difference_si": -1000.0,
+        "difference_pct": -0.262340049632114,
+        "measurement_u_si": 2000.0,
+        "model_u_si": 2000.0,
+        "combined_u_si": 2828.42712474619,
+        "normalized_difference": -0.35355339059327373,
+        "tolerance_si": 4000.0,
+        "within_tolerance": true,
+        "within_uncertainty": true,
+        "status": "independent_comparison"
+      },
+      {
+        "column": "T4_C",
+        "n": 5,
+        "missing_or_invalid": 0,
+        "mean_si": 876.6928657699009,
+        "stddev_si": 0.7905694150420949,
+        "minimum_si": 875.6928657699009,
+        "maximum_si": 877.6928657699009,
+        "slope_si_per_s": 0.03,
+        "scale": 1,
+        "role": "validation",
+        "unit": "degC",
+        "definition": "total_temperature",
+        "target": "station:4:total_temperature_k",
+        "independent": true,
+        "label": "station / タービン出口 / 全温",
+        "predicted_si": 868.6928657699009,
+        "si_unit": "K",
+        "difference_si": 8.0,
+        "difference_pct": 0.9209238748507275,
+        "measurement_u_si": 4.0,
+        "model_u_si": 4.0,
+        "combined_u_si": 5.656854249492381,
+        "normalized_difference": 1.414213562373095,
+        "tolerance_si": 8.686928657699008,
+        "within_tolerance": true,
+        "within_uncertainty": false,
+        "status": "independent_comparison"
+      },
+      {
+        "column": "fuel_kg_h",
+        "n": 4,
+        "missing_or_invalid": 1,
+        "mean_si": 0.018834832062103395,
+        "stddev_si": 7.607257743126469e-06,
+        "minimum_si": 0.018826498728770062,
+        "maximum_si": 0.018843165395436727,
+        "slope_si_per_s": 2.4999999999997246e-07,
+        "scale": 0.0002777777777777778,
+        "role": "validation",
+        "unit": "kg/h",
+        "definition": "mass_flow",
+        "target": "metric:fuel_mass_flow_kg_s",
+        "independent": true,
+        "label": "燃料流量",
+        "predicted_si": 0.01877927650654784,
+        "si_unit": "kg/s",
+        "difference_si": 5.555555555555522e-05,
+        "difference_pct": 0.2958343764531315,
+        "measurement_u_si": 0.00011111111111111112,
+        "model_u_si": 0.00011111111111111112,
+        "combined_u_si": 0.00015713484026367723,
+        "normalized_difference": 0.3535533905932716,
+        "tolerance_si": 0.00022222222222222223,
+        "within_tolerance": true,
+        "within_uncertainty": true,
+        "status": "independent_comparison"
+      },
+      {
+        "column": "electric_kW",
+        "n": 5,
+        "missing_or_invalid": 0,
+        "mean_si": 141958.2503177146,
+        "stddev_si": 79.05694150420489,
+        "minimum_si": 141858.2503177146,
+        "maximum_si": 142058.25031771458,
+        "slope_si_per_s": 2.999999999999127,
+        "scale": 1000,
+        "role": "validation",
+        "unit": "kW",
+        "definition": "power",
+        "target": "metric:net_electric_power_w",
+        "independent": true,
+        "label": "送電端出力（補機差引）",
+        "predicted_si": 143958.2503177146,
+        "si_unit": "W",
+        "difference_si": -2000.0,
+        "difference_pct": -1.3892916839333747,
+        "measurement_u_si": 2000.0,
+        "model_u_si": 2000.0,
+        "combined_u_si": 2828.42712474619,
+        "normalized_difference": -0.7071067811865475,
+        "tolerance_si": 4000.0,
+        "within_tolerance": true,
+        "within_uncertainty": true,
+        "status": "independent_comparison"
+      }
+    ],
+    "cycle_case": {
+      "format": "gas-turbine-cycle-case",
+      "schema_version": 6,
+      "module_id": "gt.cycle.simple_single_shaft",
+      "module_version": "0.6.0",
+      "run_id": "d125f6c2-2679-4d36-939b-a6b51e12904b",
+      "started_at": "2026-10-31T07:29:56.661+00:00",
+      "completed_at": "2026-10-31T07:29:56.661+00:00",
+      "input_hash": "32a058513fc24f543e17c2e0023042a8118aa3b409c5b690a5ba21e1fa6b9951",
+      "input": {
+        "schema_version": 6,
+        "mode": "airflow",
+        "name": "小型GT・設計点サンプル",
+        "parameters": {
+          "ambient_temperature_k": 288.15,
+          "ambient_pressure_pa": 101325.0,
+          "air_mass_flow_kg_s": 1.2,
+          "target_net_power_w": 100000.0,
+          "shaft_speed_rpm": 60000.0,
+          "compressor_pressure_ratio": 3.8,
+          "turbine_inlet_temperature_k": 1123.0,
+          "compressor_efficiency": 0.78,
+          "turbine_efficiency": 0.85,
+          "combustion_efficiency": 0.99,
+          "mechanical_efficiency": 0.98,
+          "generator_efficiency": 0.95,
+          "inlet_pressure_loss": 0.01,
+          "combustor_pressure_loss": 0.04,
+          "exhaust_pressure_loss": 0.02,
+          "fuel_lhv_j_kg": 50000000.0,
+          "auxiliary_power_w": 2000.0,
+          "cp_air_j_kg_k": 1005.0,
+          "cp_gas_j_kg_k": 1150.0,
+          "r_air_j_kg_k": 287.05,
+          "r_gas_j_kg_k": 287.05
+        },
+        "context": {
+          "project_id": null,
+          "component_id": null,
+          "source_revision": null
+        },
+        "thermodynamics": {
+          "model": "nasa9_frozen",
+          "fuel": "methane",
+          "fuel_hydrogen_mass_fraction": 0.25
+        },
+        "staging": {
+          "compressor": {
+            "count": 1,
+            "distribution": "pressure",
+            "weights": [
+              1.0
+            ],
+            "mean_diameters_m": null
+          },
+          "turbine": {
+            "count": 1,
+            "distribution": "pressure",
+            "weights": [
+              1.0
+            ],
+            "mean_diameters_m": null
+          }
+        },
+        "elements": {
+          "compressor": {
+            "enabled": false,
+            "inlet_velocity_m_s": 60.0,
+            "stages": [
+              {
+                "rotor_efficiency": 0.84,
+                "rotor_exit_velocity_m_s": 200.0,
+                "diffuser": {
+                  "enabled": true,
+                  "model": "cp",
+                  "coefficient": 0.6,
+                  "exit_velocity_m_s": 100.0
+                },
+                "return_channel": {
+                  "enabled": true,
+                  "model": "loss",
+                  "coefficient": 0.15,
+                  "exit_velocity_m_s": 60.0
+                }
+              }
+            ]
+          },
+          "turbine": {
+            "enabled": false,
+            "inlet_velocity_m_s": 60.0,
+            "stages": [
+              {
+                "rotor_efficiency": 0.9,
+                "rotor_exit_velocity_m_s": 100.0,
+                "diffuser": {
+                  "enabled": true,
+                  "model": "loss",
+                  "coefficient": 0.1,
+                  "exit_velocity_m_s": 60.0
+                },
+                "nozzle": {
+                  "enabled": true,
+                  "model": "loss",
+                  "coefficient": 0.04,
+                  "exit_velocity_m_s": 200.0
+                }
+              }
+            ]
+          }
+        },
+        "cooling": {
+          "enabled": false,
+          "temperature_basis": "combustor_exit",
+          "combustor_exit_limit_k": 2400.0,
+          "circuits": []
+        }
+      },
+      "result": {
+        "schema_version": 6,
+        "module_id": "gt.cycle.simple_single_shaft",
+        "module_version": "0.6.0",
+        "status": "success",
+        "model": "nasa9_frozen_complete_combustion",
+        "enthalpy_reference_temperature_k": 298.15,
+        "thermodynamics": {
+          "model": "nasa9_frozen",
+          "fuel": "methane",
+          "dataset": {
+            "dataset_id": "nasa-cea-985fd33368b2-nasa9-5species",
+            "source_repository": "nasa/cea",
+            "source_commit": "985fd33368b2334c4162a586c499e0ab41d12bd3",
+            "source_url": "https://raw.githubusercontent.com/nasa/cea/985fd33368b2334c4162a586c499e0ab41d12bd3/data/thermo.inp",
+            "source_file_sha256": "fa7746572952d74e249e818a82a35c113829742fb421a308e167185528884363",
+            "retrieved_date": "2026-10-27",
+            "temperature_range_k": [
+              200,
+              6000
+            ],
+            "universal_gas_constant_j_kmol_k": 8314.51
+          },
+          "air_mass_fractions": {
+            "N2": 0.7551836942362111,
+            "O2": 0.23141563264488882,
+            "Ar": 0.01291598558886021,
+            "CO2": 0.00048468753003990333
+          },
+          "product_mass_fractions": {
+            "N2": 0.743547622241331,
+            "O2": 0.1663822817706736,
+            "Ar": 0.012716972634338177,
+            "CO2": 0.042746929001822566,
+            "H2O": 0.03460619435183469
+          },
+          "fuel_element_mass_fractions": {
+            "C": 0.74868193531416,
+            "H": 0.25131806468584
+          },
+          "stoichiometric_fuel_air_ratio": 0.058009613330504944,
+          "equivalence_ratio": 0.2697724771863024
+        },
+        "metrics": {
+          "air_mass_flow_kg_s": 1.2,
+          "fuel_mass_flow_kg_s": 0.01877927650654784,
+          "gas_mass_flow_kg_s": 1.2187792765065477,
+          "fuel_air_ratio": 0.015649397088789867,
+          "compressor_power_w": 206731.4941732988,
+          "turbine_gas_power_w": 367726.28333227546,
+          "turbine_shaft_power_w": 360371.75766562996,
+          "net_shaft_power_w": 153640.26349233117,
+          "gross_electric_power_w": 145958.2503177146,
+          "net_electric_power_w": 143958.2503177146,
+          "fuel_heat_input_w": 938963.825327392,
+          "shaft_efficiency_lhv": 0.163627457574056,
+          "electric_efficiency_lhv": 0.15331607718489065,
+          "heat_rate_kj_kwh": 23480.903412749078,
+          "specific_fuel_consumption_kg_kwh": 0.4696180682549816,
+          "exhaust_temperature_k": 868.6928657699009,
+          "turbine_expansion_ratio": 3.5392895999999996,
+          "compressor_effective_efficiency": 0.7800000000000005,
+          "turbine_effective_efficiency": 0.85,
+          "back_work_ratio": 0.5736617528311253,
+          "gamma_air": 1.4002254128527962,
+          "gamma_gas": 1.315198719078182,
+          "compressor_isentropic_exit_temperature_k": 421.3062562746634,
+          "turbine_isentropic_exit_temperature_k": 822.4823911956926
+        },
+        "stations": [
+          {
+            "id": "0",
+            "name": "大気",
+            "total_temperature_k": 288.15,
+            "total_pressure_pa": 101325.0,
+            "mass_flow_kg_s": 1.2,
+            "fluid": "air",
+            "cp_j_kg_k": 1004.2796972902721,
+            "cv_j_kg_k": 717.2271607641867,
+            "gamma": 1.4002254128527962,
+            "gas_constant_j_kg_k": 287.05253652608536,
+            "molecular_weight_kg_kmol": 28.9651159353,
+            "sensible_enthalpy_j_kg": -10044.97962196819,
+            "entropy_thermal_function_j_kg_k": -34.26894473935444
+          },
+          {
+            "id": "1",
+            "name": "圧縮機入口",
+            "total_temperature_k": 288.15,
+            "total_pressure_pa": 100311.75,
+            "mass_flow_kg_s": 1.2,
+            "fluid": "air",
+            "cp_j_kg_k": 1004.2796972902721,
+            "cv_j_kg_k": 717.2271607641867,
+            "gamma": 1.4002254128527962,
+            "gas_constant_j_kg_k": 287.05253652608536,
+            "molecular_weight_kg_kmol": 28.9651159353,
+            "sensible_enthalpy_j_kg": -10044.97962196819,
+            "entropy_thermal_function_j_kg_k": -34.26894473935444
+          },
+          {
+            "id": "2",
+            "name": "圧縮機出口",
+            "total_temperature_k": 458.49704529934104,
+            "total_pressure_pa": 381184.64999999997,
+            "mass_flow_kg_s": 1.2,
+            "fluid": "air",
+            "cp_j_kg_k": 1022.0487796943133,
+            "cv_j_kg_k": 734.9962431682279,
+            "gamma": 1.390549664973436,
+            "gas_constant_j_kg_k": 287.05253652608536,
+            "molecular_weight_kg_kmol": 28.9651159353,
+            "sensible_enthalpy_j_kg": 162231.26552244747,
+            "entropy_thermal_function_j_kg_k": 435.15182043071997
+          },
+          {
+            "id": "3",
+            "name": "タービン入口",
+            "total_temperature_k": 1123.0,
+            "total_pressure_pa": 365937.26399999997,
+            "mass_flow_kg_s": 1.2187792765065477,
+            "fluid": "gas",
+            "cp_j_kg_k": 1212.6222106132225,
+            "cv_j_kg_k": 922.006836703084,
+            "gamma": 1.315198719078182,
+            "gas_constant_j_kg_k": 290.61537391013843,
+            "molecular_weight_kg_kmol": 28.610014288407676,
+            "sensible_enthalpy_j_kg": 922440.7793702875,
+            "entropy_thermal_function_j_kg_k": 1455.7973919163574
+          },
+          {
+            "id": "4",
+            "name": "タービン出口",
+            "total_temperature_k": 868.6928657699009,
+            "total_pressure_pa": 103392.85714285714,
+            "mass_flow_kg_s": 1.2187792765065477,
+            "fluid": "gas",
+            "cp_j_kg_k": 1157.8768100346729,
+            "cv_j_kg_k": 867.2614361245344,
+            "gamma": 1.3350954646488025,
+            "gas_constant_j_kg_k": 290.61537391013843,
+            "molecular_weight_kg_kmol": 28.610014288407676,
+            "sensible_enthalpy_j_kg": 620723.8972238263,
+            "entropy_thermal_function_j_kg_k": 1151.4609406731836
+          },
+          {
+            "id": "5",
+            "name": "排気境界",
+            "total_temperature_k": 868.6928657699009,
+            "total_pressure_pa": 101325.0,
+            "mass_flow_kg_s": 1.2187792765065477,
+            "fluid": "gas",
+            "cp_j_kg_k": 1157.8768100346729,
+            "cv_j_kg_k": 867.2614361245344,
+            "gamma": 1.3350954646488025,
+            "gas_constant_j_kg_k": 290.61537391013843,
+            "molecular_weight_kg_kmol": 28.610014288407676,
+            "sensible_enthalpy_j_kg": 620723.8972238263,
+            "entropy_thermal_function_j_kg_k": 1151.4609406731836
+          }
+        ],
+        "stage_results": {
+          "compressor": {
+            "count": 1,
+            "distribution": "pressure",
+            "method": "constant_polytropic_endpoint_unstacking",
+            "polytropic_efficiency": 0.8163580968381455,
+            "specified_overall_isentropic_efficiency": 0.78,
+            "recovered_overall_isentropic_efficiency": 0.7800000000000005,
+            "specific_work_j_kg": 172276.24514441568,
+            "total_power_w": 206731.4941732988,
+            "sum_stage_power_w": 206731.4941732988,
+            "overall_pressure_ratio": 3.8,
+            "stages": [
+              {
+                "stage": 1,
+                "inlet": {
+                  "total_temperature_k": 288.15,
+                  "total_pressure_pa": 100311.75,
+                  "mass_flow_kg_s": 1.2,
+                  "cp_j_kg_k": 1004.2796972902721,
+                  "cv_j_kg_k": 717.2271607641867,
+                  "gamma": 1.4002254128527962,
+                  "gas_constant_j_kg_k": 287.05253652608536,
+                  "molecular_weight_kg_kmol": 28.9651159353,
+                  "sensible_enthalpy_j_kg": -10044.97962196819,
+                  "entropy_thermal_function_j_kg_k": -34.26894473935444
+                },
+                "outlet": {
+                  "total_temperature_k": 458.49704529934104,
+                  "total_pressure_pa": 381184.64999999997,
+                  "mass_flow_kg_s": 1.2,
+                  "cp_j_kg_k": 1022.0487796943133,
+                  "cv_j_kg_k": 734.9962431682279,
+                  "gamma": 1.390549664973436,
+                  "gas_constant_j_kg_k": 287.05253652608536,
+                  "molecular_weight_kg_kmol": 28.9651159353,
+                  "sensible_enthalpy_j_kg": 162231.26552244747,
+                  "entropy_thermal_function_j_kg_k": 435.15182043071997
+                },
+                "pressure_ratio": 3.8,
+                "temperature_change_k": 170.34704529934106,
+                "specific_work_j_kg": 172276.24514441568,
+                "power_w": 206731.4941732988,
+                "transmitted_power_w": 206731.4941732988,
+                "isentropic_efficiency": 0.7800000000000005,
+                "isentropic_exit_temperature_k": 421.3062562746634,
+                "pressure_log_fraction": 1.0,
+                "work_fraction": 1.0,
+                "entropy_generation_j_kg_k": 86.20532269952645,
+                "mean_diameter_m": null,
+                "blade_speed_m_s": null,
+                "loading_coefficient": null
+              }
+            ],
+            "states": [
+              {
+                "total_temperature_k": 288.15,
+                "total_pressure_pa": 100311.75,
+                "mass_flow_kg_s": 1.2,
+                "cp_j_kg_k": 1004.2796972902721,
+                "cv_j_kg_k": 717.2271607641867,
+                "gamma": 1.4002254128527962,
+                "gas_constant_j_kg_k": 287.05253652608536,
+                "molecular_weight_kg_kmol": 28.9651159353,
+                "sensible_enthalpy_j_kg": -10044.97962196819,
+                "entropy_thermal_function_j_kg_k": -34.26894473935444
+              },
+              {
+                "total_temperature_k": 458.49704529934104,
+                "total_pressure_pa": 381184.64999999997,
+                "mass_flow_kg_s": 1.2,
+                "cp_j_kg_k": 1022.0487796943133,
+                "cv_j_kg_k": 734.9962431682279,
+                "gamma": 1.390549664973436,
+                "gas_constant_j_kg_k": 287.05253652608536,
+                "molecular_weight_kg_kmol": 28.9651159353,
+                "sensible_enthalpy_j_kg": 162231.26552244747,
+                "entropy_thermal_function_j_kg_k": 435.15182043071997
+              }
+            ],
+            "assumption": "全体効率・端点を固定し、全段で一定のポリトロープ効率を仮定した熱力学的配分。翼列・速度三角形の設計性能ではありません。"
+          },
+          "turbine": {
+            "count": 1,
+            "distribution": "pressure",
+            "method": "constant_polytropic_endpoint_unstacking",
+            "polytropic_efficiency": 0.828540475360518,
+            "specified_overall_isentropic_efficiency": 0.85,
+            "recovered_overall_isentropic_efficiency": 0.85,
+            "specific_work_j_kg": 301716.8821464613,
+            "total_power_w": 367726.2833322754,
+            "sum_stage_power_w": 367726.2833322754,
+            "overall_pressure_ratio": 3.5392896,
+            "stages": [
+              {
+                "stage": 1,
+                "inlet": {
+                  "total_temperature_k": 1123.0,
+                  "total_pressure_pa": 365937.26399999997,
+                  "mass_flow_kg_s": 1.2187792765065477,
+                  "cp_j_kg_k": 1212.6222106132225,
+                  "cv_j_kg_k": 922.006836703084,
+                  "gamma": 1.315198719078182,
+                  "gas_constant_j_kg_k": 290.61537391013843,
+                  "molecular_weight_kg_kmol": 28.610014288407676,
+                  "sensible_enthalpy_j_kg": 922440.7793702875,
+                  "entropy_thermal_function_j_kg_k": 1455.7973919163574
+                },
+                "outlet": {
+                  "total_temperature_k": 868.6928657699009,
+                  "total_pressure_pa": 103392.85714285714,
+                  "mass_flow_kg_s": 1.2187792765065477,
+                  "cp_j_kg_k": 1157.8768100346729,
+                  "cv_j_kg_k": 867.2614361245344,
+                  "gamma": 1.3350954646488025,
+                  "gas_constant_j_kg_k": 290.61537391013843,
+                  "molecular_weight_kg_kmol": 28.610014288407676,
+                  "sensible_enthalpy_j_kg": 620723.8972238263,
+                  "entropy_thermal_function_j_kg_k": 1151.4609406731836
+                },
+                "pressure_ratio": 3.5392895999999996,
+                "temperature_change_k": -254.3071342300991,
+                "specific_work_j_kg": 301716.8821464613,
+                "power_w": 367726.2833322754,
+                "transmitted_power_w": 360371.7576656299,
+                "isentropic_efficiency": 0.85,
+                "isentropic_exit_temperature_k": 822.4823911956926,
+                "pressure_log_fraction": 1.0,
+                "work_fraction": 1.0,
+                "entropy_generation_j_kg_k": 62.97988428135159,
+                "mean_diameter_m": null,
+                "blade_speed_m_s": null,
+                "loading_coefficient": null
+              }
+            ],
+            "states": [
+              {
+                "total_temperature_k": 1123.0,
+                "total_pressure_pa": 365937.26399999997,
+                "mass_flow_kg_s": 1.2187792765065477,
+                "cp_j_kg_k": 1212.6222106132225,
+                "cv_j_kg_k": 922.006836703084,
+                "gamma": 1.315198719078182,
+                "gas_constant_j_kg_k": 290.61537391013843,
+                "molecular_weight_kg_kmol": 28.610014288407676,
+                "sensible_enthalpy_j_kg": 922440.7793702875,
+                "entropy_thermal_function_j_kg_k": 1455.7973919163574
+              },
+              {
+                "total_temperature_k": 868.6928657699009,
+                "total_pressure_pa": 103392.85714285714,
+                "mass_flow_kg_s": 1.2187792765065477,
+                "cp_j_kg_k": 1157.8768100346729,
+                "cv_j_kg_k": 867.2614361245344,
+                "gamma": 1.3350954646488025,
+                "gas_constant_j_kg_k": 290.61537391013843,
+                "molecular_weight_kg_kmol": 28.610014288407676,
+                "sensible_enthalpy_j_kg": 620723.8972238263,
+                "entropy_thermal_function_j_kg_k": 1151.4609406731836
+              }
+            ],
+            "assumption": "全体効率・端点を固定し、全段で一定のポリトロープ効率を仮定した熱力学的配分。翼列・速度三角形の設計性能ではありません。"
+          }
+        },
+        "energy_balance": {
+          "combustion_loss_w": 9389.638253273928,
+          "mechanical_loss_w": 7354.525666645516,
+          "generator_loss_w": 7682.013174616565,
+          "auxiliary_power_w": 2000.0,
+          "exhaust_net_sensible_energy_w": 768579.3979151415,
+          "shaft_balance_residual_w": -2.3283064365386963e-10,
+          "electric_balance_residual_w": -2.3283064365386963e-10,
+          "mass_balance_residual_kg_s": -7.979727989493313e-17
+        },
+        "warnings": [
+          "NASA9温度依存物性・乾燥空気・希薄完全燃焼の凍結組成です。燃焼の化学平衡・解離・湿度・冷却抽気は未対応で、GasTurbとの数値一致は未検証です。",
+          "回転数は任意の段平均径と組み合わせた周速・負荷係数の算出に用います。サイクル性能の変化や軸系マッチングは計算しません。"
+        ]
+      }
+    },
+    "warnings": [
+      "定常区間は利用者の指定です。標準偏差・範囲・傾向を確認してください。自動定常判定は行いません。",
+      "運転条件は平均値に置換した設計点計算です。性能マップによるオフデザイン解析・基準状態補正ではありません。",
+      "計測とモデルの拡張不確かさUは同じ包含係数k=2・独立を仮定します。計測入力の感度伝播や相関は未計算です。"
+    ]
+  }
+}

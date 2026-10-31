@@ -16,6 +16,7 @@ if __package__:
     from .thermo import provenance, FUEL_NAMES
     from . import shaft_joints as joints
     from .joint_store import JointStore
+    from . import evaluation
 else:
     from engine import run_case, sweep
     from model import MODULE_ID, MODULE_VERSION, default_input, ui_schema, validate_input, element_stage, cooling_circuit
@@ -23,6 +24,7 @@ else:
     from thermo import provenance, FUEL_NAMES
     import shaft_joints as joints
     from joint_store import JointStore
+    import evaluation
 
 ROOT = Path(__file__).resolve().parent
 TOKEN = secrets.token_urlsafe(32)
@@ -67,9 +69,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, (ROOT / "static/index.html").read_text(encoding="utf-8").replace("__TOKEN__", TOKEN), "text/html; charset=utf-8")
             if path.path == '/shaft-joints':
                 return self.send(200,(ROOT/'static/joints.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
+            if path.path == '/test-evaluation':
+                return self.send(200,(ROOT/'static/evaluation.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
             static = {"/app.js": ("static/app.js", "text/javascript; charset=utf-8"),
                       "/style.css": ("static/style.css", "text/css; charset=utf-8"),
                       "/guide": ("static/guide.html", "text/html; charset=utf-8"),
+                      '/evaluation.js':('static/evaluation.js','text/javascript; charset=utf-8'),
+                      '/evaluation.css':('static/evaluation.css','text/css; charset=utf-8'),
+                      '/test-evaluation/guide':('static/evaluation-guide.html','text/html; charset=utf-8'),
                       '/joints.js':('static/joints.js','text/javascript; charset=utf-8'),
                       '/joints.css':('static/joints.css','text/css; charset=utf-8'),
                       '/shaft-joints/guide':('static/joints-guide.html','text/html; charset=utf-8')}
@@ -89,6 +96,10 @@ class Handler(BaseHTTPRequestHandler):
                                   'defaults':{k:joints.default_input(k) for k in ('spline','curvic')}})
             if path.path == '/api/joints/cases': return self.json(self.server.joint_store.list())
             if path.path == '/api/joints/case': return self.json(self.server.joint_store.get(query.get('id',[''])[0]))
+            if path.path == '/api/evaluation/schema':
+                return self.json({'example':evaluation.example_input(),'units':evaluation.UNITS,'conditions':evaluation.CONDITIONS})
+            if path.path == '/api/evaluation/cases': return self.json(self.server.evaluation_store.list())
+            if path.path == '/api/evaluation/case': return self.json(self.server.evaluation_store.get(query.get('id',[''])[0]))
             return self.json({"error": "見つかりません。"}, 404)
         except (ValueError, LookupError) as exc:
             return self.json({"error": str(exc)}, 404)
@@ -117,6 +128,14 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/import":
                 return self.json({"input": read_input_file(data.get("document")), "note": "入力だけを取り込みました。結果は再計算してください。"})
             if self.path == '/api/joints/calculate': return self.json(joints.run_case(data.get('input')))
+            if self.path == '/api/evaluation/calculate': return self.json(evaluation.run_case(data.get('input')))
+            if self.path == '/api/evaluation/save': return self.json(self.server.evaluation_store.save(evaluation.run_case(data.get('input'))))
+            if self.path == '/api/evaluation/import': return self.json({'input':evaluation.read_input_file(data.get('document'))})
+            if self.path == '/api/evaluation/catalog':
+                return self.json(evaluation.catalog(run_case(data.get('input'))['result']))
+            if self.path == '/api/evaluation/preview':
+                headers, rows=evaluation.parse_csv(data.get('csv_text'),data.get('time_column'))
+                return self.json({'headers':headers,'rows':len(rows),'start_s':rows[0][0],'end_s':rows[-1][0]})
             if self.path == '/api/joints/save': return self.json(self.server.joint_store.save(joints.run_case(data.get('input'))))
             if self.path == '/api/joints/import': return self.json({'input':joints.read_input_file(data.get('document'))})
             if self.path == '/api/joints/cycle-load':
@@ -135,6 +154,7 @@ def make_server(data_path, port=0):
     server.store = CaseStore(data_path)
     joint_path=Path(data_path).with_name(Path(data_path).stem+'.shaft-joints.sqlite3')
     server.joint_store=JointStore(joint_path)
+    server.evaluation_store=evaluation.EvaluationStore(Path(data_path).with_name(Path(data_path).stem+'.test-evaluation.sqlite3'))
     return server
 
 

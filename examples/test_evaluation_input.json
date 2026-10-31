@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "name": "仮想試験・定常60〜100秒",
+  "source_name": "fictional-test.csv",
+  "notes": "すべて仮想計測値。検証方法の操作例です。",
+  "baseline_source": "既定NASA9設計点",
+  "calibrated_model": false,
+  "calibration_note": "",
+  "baseline_input": {
+    "schema_version": 6,
+    "mode": "airflow",
+    "name": "小型GT・設計点サンプル",
+    "parameters": {
+      "ambient_temperature_k": 288.15,
+      "ambient_pressure_pa": 101325,
+      "air_mass_flow_kg_s": 1.2,
+      "target_net_power_w": 100000,
+      "shaft_speed_rpm": 60000,
+      "compressor_pressure_ratio": 3.8,
+      "turbine_inlet_temperature_k": 1123,
+      "compressor_efficiency": 0.78,
+      "turbine_efficiency": 0.85,
+      "combustion_efficiency": 0.99,
+      "mechanical_efficiency": 0.98,
+      "generator_efficiency": 0.95,
+      "inlet_pressure_loss": 0.01,
+      "combustor_pressure_loss": 0.04,
+      "exhaust_pressure_loss": 0.02,
+      "fuel_lhv_j_kg": 50000000.0,
+      "auxiliary_power_w": 2000,
+      "cp_air_j_kg_k": 1005,
+      "cp_gas_j_kg_k": 1150,
+      "r_air_j_kg_k": 287.05,
+      "r_gas_j_kg_k": 287.05
+    },
+    "staging": {
+      "compressor": {
+        "count": 1,
+        "distribution": "pressure",
+        "weights": [
+          1.0
+        ],
+        "mean_diameters_m": null
+      },
+      "turbine": {
+        "count": 1,
+        "distribution": "pressure",
+        "weights": [
+          1.0
+        ],
+        "mean_diameters_m": null
+      }
+    },
+    "elements": {
+      "compressor": {
+        "enabled": false,
+        "inlet_velocity_m_s": 60.0,
+        "stages": [
+          {
+            "rotor_efficiency": 0.84,
+            "rotor_exit_velocity_m_s": 200.0,
+            "diffuser": {
+              "enabled": true,
+              "model": "cp",
+              "coefficient": 0.6,
+              "exit_velocity_m_s": 100.0
+            },
+            "return_channel": {
+              "enabled": true,
+              "model": "loss",
+              "coefficient": 0.15,
+              "exit_velocity_m_s": 60.0
+            }
+          }
+        ]
+      },
+      "turbine": {
+        "enabled": false,
+        "inlet_velocity_m_s": 60.0,
+        "stages": [
+          {
+            "rotor_efficiency": 0.9,
+            "rotor_exit_velocity_m_s": 100.0,
+            "nozzle": {
+              "enabled": true,
+              "model": "loss",
+              "coefficient": 0.04,
+              "exit_velocity_m_s": 200.0
+            },
+            "diffuser": {
+              "enabled": true,
+              "model": "loss",
+              "coefficient": 0.1,
+              "exit_velocity_m_s": 60.0
+            }
+          }
+        ]
+      }
+    },
+    "cooling": {
+      "enabled": false,
+      "temperature_basis": "combustor_exit",
+      "combustor_exit_limit_k": 2400.0,
+      "circuits": []
+    },
+    "thermodynamics": {
+      "model": "nasa9_frozen",
+      "fuel": "methane",
+      "fuel_hydrogen_mass_fraction": 0.25
+    },
+    "context": {
+      "project_id": null,
+      "component_id": null,
+      "source_revision": null
+    }
+  },
+  "time_column": "time_s",
+  "start_s": 60,
+  "end_s": 100,
+  "channels": [
+    {
+      "column": "ambient_C",
+      "role": "condition",
+      "unit": "degC",
+      "definition": "total_temperature",
+      "parameter": "ambient_temperature_k",
+      "target": null,
+      "measurement_u": 0.5,
+      "model_u": 0.5,
+      "absolute_tolerance": 1.0,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 ambient_C",
+      "calibration_date": "仮想・未校正",
+      "location": "ambient_C / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    },
+    {
+      "column": "ambient_kPa",
+      "role": "condition",
+      "unit": "kPa",
+      "definition": "absolute_total_pressure",
+      "parameter": "ambient_pressure_pa",
+      "target": null,
+      "measurement_u": 0.1,
+      "model_u": 0.1,
+      "absolute_tolerance": 0.2,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 ambient_kPa",
+      "calibration_date": "仮想・未校正",
+      "location": "ambient_kPa / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    },
+    {
+      "column": "air_kg_s",
+      "role": "condition",
+      "unit": "kg/s",
+      "definition": "mass_flow",
+      "parameter": "air_mass_flow_kg_s",
+      "target": null,
+      "measurement_u": 0.01,
+      "model_u": 0.01,
+      "absolute_tolerance": 0.02,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 air_kg_s",
+      "calibration_date": "仮想・未校正",
+      "location": "air_kg_s / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    },
+    {
+      "column": "T2_C",
+      "role": "validation",
+      "unit": "degC",
+      "definition": "total_temperature",
+      "parameter": null,
+      "target": "station:2:total_temperature_k",
+      "measurement_u": 2,
+      "model_u": 2,
+      "absolute_tolerance": 4,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 T2_C",
+      "calibration_date": "仮想・未校正",
+      "location": "T2_C / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    },
+    {
+      "column": "P2_kPa",
+      "role": "validation",
+      "unit": "kPa",
+      "definition": "absolute_total_pressure",
+      "parameter": null,
+      "target": "station:2:total_pressure_pa",
+      "measurement_u": 2,
+      "model_u": 2,
+      "absolute_tolerance": 4,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 P2_kPa",
+      "calibration_date": "仮想・未校正",
+      "location": "P2_kPa / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    },
+    {
+      "column": "T4_C",
+      "role": "validation",
+      "unit": "degC",
+      "definition": "total_temperature",
+      "parameter": null,
+      "target": "station:4:total_temperature_k",
+      "measurement_u": 4,
+      "model_u": 4,
+      "absolute_tolerance": 8,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 T4_C",
+      "calibration_date": "仮想・未校正",
+      "location": "T4_C / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    },
+    {
+      "column": "fuel_kg_h",
+      "role": "validation",
+      "unit": "kg/h",
+      "definition": "mass_flow",
+      "parameter": null,
+      "target": "metric:fuel_mass_flow_kg_s",
+      "measurement_u": 0.4,
+      "model_u": 0.4,
+      "absolute_tolerance": 0.8,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 fuel_kg_h",
+      "calibration_date": "仮想・未校正",
+      "location": "fuel_kg_h / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    },
+    {
+      "column": "electric_kW",
+      "role": "validation",
+      "unit": "kW",
+      "definition": "power",
+      "parameter": null,
+      "target": "metric:net_electric_power_w",
+      "measurement_u": 2,
+      "model_u": 2,
+      "absolute_tolerance": 4,
+      "relative_tolerance_pct": 1,
+      "instrument": "仮想計器 electric_kW",
+      "calibration_date": "仮想・未校正",
+      "location": "electric_kW / 定義を確認済み（全温・全圧・軸流量）",
+      "uncertainty_basis": "操作例の仮定値、平均の拡張不確かさ k=2",
+      "gauge_reference_pa": 101325
+    }
+  ],
+  "csv_text": "time_s,ambient_C,ambient_kPa,air_kg_s,T2_C,P2_kPa,T4_C,fuel_kg_h,electric_kW\n0,15,101.325,1.2,168.34704529934106,378.18465,583.5428657699009,67.20539542357223,139.9582503177146\n20,15,101.325,1.2,178.34704529934106,379.18465,593.5428657699009,67.50539542357222,140.9582503177146\n40,15,101.325,1.2,184.34704529934106,379.78465,599.5428657699009,67.68539542357222,141.5582503177146\n60,15,101.325,1.2,187.34704529934106,380.08464999999995,602.5428657699009,67.77539542357222,141.8582503177146\n70,15,101.325,1.2,188.84704529934106,380.23465,604.0428657699009,67.82039542357222,142.0082503177146\n80,15,101.325,1.2,188.34704529934106,380.18465,603.5428657699009,,141.9582503177146\n90,15,101.325,1.2,187.84704529934106,380.13464999999997,603.0428657699009,67.79039542357222,141.9082503177146\n100,15,101.325,1.2,189.34704529934106,380.28465,604.5428657699009,67.83539542357222,142.0582503177146\n120,15,101.325,1.2,198.34704529934106,381.18465,613.5428657699009,68.10539542357222,142.9582503177146\n"
+}

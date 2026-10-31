@@ -110,3 +110,7 @@ mixing要素はroute_indexでresult.cooling.routesへ対応。冷却流量、供
 入力はschema_version/kind/name/context/load/geometry/factors/material、curvicはclampを追加。fieldsとdefaultは`/api/joints/schema`から取得。結果チェックはdemand/allowable（SI）、required_safety、safety_factor、margin、utilization、passed。statusはwithin_preliminary_limits/exceeds_preliminary_limitsで、規格適合や実機安全を表さない。
 
 ケース形式はgas-turbine-shaft-joint-case。案件・部品UUID・元リビジョンをcycleと同じcontext形式で保持。トルク・材料許容値の出典を入力文字列で記録し、SHA-256で正規化入力全量を識別する。保存は別DBファイル、cycle/管理アプリのDBには計算結果を書き込まない。サイクル荷重取込では保存ケースID・入力ハッシュ・軸位置をsource_noteへ保持する。
+
+## 独立した試験データ評価
+
+`evaluation.py` / `gt.evaluation.test_comparison` v0.1.0、schema1。既存cycle v0.6.0/schema6は維持。`/test-evaluation` の画面と `/api/evaluation/*` を追加し、`*.test-evaluation.sqlite3`へ保存します。原CSV・対応付け・平均区間・再計算したcycle_caseとハッシュを保持。既存設計・軸締結・サイクルDBのレコードを書き換えません。契約は [TEST_EVALUATION.md](TEST_EVALUATION.md) を参照。
