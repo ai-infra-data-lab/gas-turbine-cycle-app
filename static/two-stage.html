@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="cycle-token" content="__TOKEN__"><title>2段遠心圧縮機の設計</title>
+<link rel="stylesheet" href="/evaluation.css"><script defer src="/two-stage.js"></script></head>
+<body><header><div><h1>2段遠心圧縮機の設計</h1><p>段圧力比の配分を選び、子午面とインペラーの翼端形状を設定します。</p></div>
+<nav><a href="/">サイクル計算</a><a href="/compressor-sizing">単段の設計</a><a href="#performance">CFD・試験性能の反映</a><a href="/compressor-sizing/guide">操作ガイド</a></nav></header>
+<main>
+<section><h2>設計条件</h2><form id="design">
+<label>基準サイクル<select id="base"><option value="">仮想サンプル（全圧比3.2、39,000 rpm）</option></select></label>
+<p>保存ケースでは圧縮機を2段・要素モードにし、両段のディフューザーと第1段のリターンチャネルを有効、冷却抽気を無効にしてください。</p>
+<label>第1段の対数全圧比分配 %（空欄で探索）<input id="share" type="number" min="5" max="95" step="any" placeholder="例 50"></label>
+<div class="grid"><label>探索下限 %<input id="search-min" type="number" min="5" max="94" value="25" required></label>
+<label>探索上限 %<input id="search-max" type="number" min="6" max="95" value="75" required></label></div>
+<p>自動探索では指定範囲の候補から、入力した効率・損失のもとで圧縮比仕事が最小の成立案を選びます。</p>
+<div id="stage-inputs"></div>
+<details><summary>翼付き6要素の書き出し設定</summary>
+<label class="check"><input id="enable-vaned" type="checkbox">翼付き6要素の設定を設計一式JSONに含める</label>
+<p>静翼と出口流路の初期形状を設定します。サイクルの圧力損失と効率は設計条件の係数を使って計算します。</p>
+<fieldset id="vaned-inputs" hidden disabled><legend>静翼と出口流路</legend></fieldset>
+</details>
+<button id="go" class="primary" disabled>配分と形状を計算</button>
+</form><p id="status" role="status"></p></section>
+<section id="summary" hidden><h2>選んだ配分と子午面</h2><p id="selection"></p>
+<figure><svg id="layout" width="100%" height="350" role="img" aria-label="2段圧縮機の子午面"></svg>
+<figcaption>横は軸方向、縦は半径方向。同一縮尺。青はインペラー、緑はベーンなしディフューザー、紫は段間リターンチャネル。</figcaption></figure>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>第1段</th><th>第2段</th></tr></thead><tbody id="dimensions"></tbody></table></div>
+<p id="return-note"></p>
+<div class="actions"><button id="report-out">設計一式JSON</button><button id="cycle-out">サイクルケースJSON</button><button id="stage1-out">第1段の翼設計用JSON</button><button id="stage2-out">第2段の翼設計用JSON</button><button id="return-out">リターンチャネル壁の編集用JSON</button></div>
+<p id="handoff-note"></p>
+<p>「設計一式JSON」は1つの編集用プロジェクトに変換できます。コマンドは<a href="/compressor-sizing/guide">操作ガイド</a>を参照してください。</p></section>
+<section id="search" hidden><h2>配分候補</h2><div class="table-scroll"><table><thead>
+<tr><th>第1段の配分</th><th>第1段全圧比</th><th>第2段全圧比</th><th>圧縮比仕事 kJ/kg</th><th>成立判定</th></tr>
+</thead><tbody id="candidates"></tbody></table></div></section>
+<section id="performance"><h2>CFD・試験性能の反映</h2>
+<p>上で選んだ基準サイクルを使い、性能JSONに指定した共通運転点で均等配分案と75%配分案を再計算します。両案の段全圧比と全圧効率を入力してください。</p>
+<p><a href="/two-stage-performance-example.json" download="two-stage-performance-sample.json">性能JSONの仮想サンプル</a> · <a href="/compressor-sizing/guide">入力項目と評価断面</a></p>
+<form id="performance-form">
+<label>2段圧縮機性能JSON<input id="performance-file" type="file" accept=".json,application/json" required></label>
+<button id="performance-go" class="primary" disabled>性能を反映して比較</button>
+</form>
+<p id="performance-status" role="status"></p>
+<div id="performance-result" hidden>
+<p id="performance-operation"></p>
+<div class="table-scroll"><table><thead><tr><th>項目</th><th>均等配分案</th><th>75%配分案</th><th>差（75%案 − 均等案）</th></tr></thead>
+<tbody id="performance-metrics"></tbody></table></div>
+<div class="actions">
+<button id="performance-report-out">比較一式JSON</button>
+<button id="performance-equal-out">均等配分案のサイクルJSON</button>
+<button id="performance-75-out">75%配分案のサイクルJSON</button>
+</div>
+</div></section>
+</main></body></html>

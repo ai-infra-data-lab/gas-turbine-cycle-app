@@ -1,0 +1,193 @@
+{
+  "network": {
+    "title": "単軸2軸受の給油（仮想）",
+    "schema_version": 1,
+    "mode": "auto",
+    "fluid": {
+      "temperature_c": 40,
+      "density_kg_m3": 850,
+      "viscosity_cst": 32
+    },
+    "nodes": [
+      {
+        "id": "P",
+        "kind": "pressure"
+      },
+      {
+        "id": "H",
+        "kind": "junction"
+      },
+      {
+        "id": "A",
+        "kind": "junction"
+      },
+      {
+        "id": "B",
+        "kind": "junction"
+      },
+      {
+        "id": "R",
+        "kind": "junction"
+      },
+      {
+        "id": "T",
+        "kind": "pressure"
+      },
+      {
+        "id": "HA",
+        "kind": "junction"
+      },
+      {
+        "id": "HB",
+        "kind": "junction"
+      },
+      {
+        "id": "RA",
+        "kind": "junction"
+      },
+      {
+        "id": "RB",
+        "kind": "junction"
+      }
+    ],
+    "elements": [
+      {
+        "id": "supply-header",
+        "start": "P",
+        "end": "H",
+        "diameter_mm": 8,
+        "outlet_diameter_mm": 8,
+        "length_m": 0.3
+      },
+      {
+        "id": "A-feed",
+        "start": "HA",
+        "end": "A",
+        "diameter_mm": 8,
+        "outlet_diameter_mm": 8,
+        "length_m": 0.65
+      },
+      {
+        "id": "B-feed",
+        "start": "HB",
+        "end": "B",
+        "diameter_mm": 8,
+        "outlet_diameter_mm": 8,
+        "length_m": 0.8
+      },
+      {
+        "id": "A-restrict",
+        "start": "A",
+        "end": "RA",
+        "diameter_mm": 8,
+        "outlet_diameter_mm": 8,
+        "length_m": 3.0
+      },
+      {
+        "id": "B-restrict",
+        "start": "B",
+        "end": "RB",
+        "diameter_mm": 8,
+        "outlet_diameter_mm": 8,
+        "length_m": 3.5
+      },
+      {
+        "id": "return-header",
+        "start": "R",
+        "end": "T",
+        "diameter_mm": 8,
+        "outlet_diameter_mm": 8,
+        "length_m": 0.3
+      }
+    ],
+    "tees": [
+      {
+        "id": "supply-tee",
+        "common": "H",
+        "run": "HA",
+        "branch": "HB",
+        "kind": "split",
+        "common_diameter_mm": 8,
+        "run_diameter_mm": 8,
+        "branch_diameter_mm": 8,
+        "k_run": 0.15,
+        "k_branch": 0.45,
+        "source": "synthetic K"
+      },
+      {
+        "id": "return-tee",
+        "common": "R",
+        "run": "RA",
+        "branch": "RB",
+        "kind": "merge",
+        "common_diameter_mm": 8,
+        "run_diameter_mm": 8,
+        "branch_diameter_mm": 8,
+        "k_run": 0.15,
+        "k_branch": 0.45,
+        "source": "synthetic K"
+      }
+    ]
+  },
+  "pump_outlet_node": "P",
+  "conditions": {
+    "冷間始動": {
+      "temperature_c": 10,
+      "viscosity_cst": 120,
+      "suction_pressure_kpa": 0,
+      "pump_curve": [
+        [
+          0,
+          270
+        ],
+        [
+          12,
+          225
+        ],
+        [
+          24,
+          155
+        ],
+        [
+          36,
+          65
+        ]
+      ]
+    },
+    "定格": {
+      "temperature_c": 60,
+      "viscosity_cst": 32,
+      "suction_pressure_kpa": 0,
+      "pump_curve": [
+        [
+          0,
+          270
+        ],
+        [
+          12,
+          225
+        ],
+        [
+          24,
+          155
+        ],
+        [
+          36,
+          65
+        ]
+      ]
+    }
+  },
+  "bearings": {
+    "A": {
+      "inlet_element": "A-feed",
+      "minimum_flow_lpm": 4.5,
+      "minimum_pressure_kpa": 70
+    },
+    "B": {
+      "inlet_element": "B-feed",
+      "minimum_flow_lpm": 4.5,
+      "minimum_pressure_kpa": 70
+    }
+  }
+}

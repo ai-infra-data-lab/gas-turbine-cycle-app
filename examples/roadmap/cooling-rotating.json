@@ -1,0 +1,87 @@
+{
+  "network": {
+    "schema_version": 1,
+    "name": "回転移送とラビリンスの仮想例",
+    "gas": {
+      "R": 287.05,
+      "gamma": 1.4
+    },
+    "nodes": [
+      {
+        "id": "bleed",
+        "kind": "boundary",
+        "name": "圧縮機抽気",
+        "pressure_pa": 320000,
+        "temperature_k": 442,
+        "frame": "rotating",
+        "rpm": 39000,
+        "radius_m": 0.025
+      },
+      {
+        "id": "plenum",
+        "kind": "junction",
+        "name": "冷却供給室",
+        "pressure_pa": 190000,
+        "temperature_k": 443,
+        "frame": "rotating",
+        "rpm": 39000,
+        "radius_m": 0.04
+      },
+      {
+        "id": "gaspath",
+        "kind": "boundary",
+        "name": "タービン側",
+        "pressure_pa": 120000,
+        "temperature_k": 900,
+        "frame": "rotating",
+        "rpm": 39000,
+        "radius_m": 0.04
+      }
+    ],
+    "edges": [
+      {
+        "id": "feed",
+        "name": "供給計量孔",
+        "from": "bleed",
+        "to": "plenum",
+        "kind": "rotating_pipe",
+        "area_m2": 0.00008,
+        "cd": 0.72,
+        "source": "仮想値",
+        "diameter_m": 0.01009253,
+        "length_m": 0.12,
+        "k": 0.2,
+        "friction": "fixed",
+        "friction_factor": 0.02,
+        "cells": 32
+      },
+      {
+        "id": "inject",
+        "name": "出口冷却気戻し",
+        "from": "plenum",
+        "to": "gaspath",
+        "kind": "labyrinth",
+        "area_m2": 0.00005,
+        "cd": 0.65,
+        "source": "仮想値",
+        "seal_diameter_m": 0.06,
+        "clearance_m": 0.00008,
+        "tooth_count": 4,
+        "cd_reverse": 0.65
+      }
+    ]
+  },
+  "source_stage": 2,
+  "supply_node": "bleed",
+  "turbine_case": "3段均等",
+  "injections": [
+    {
+      "boundary_node": "gaspath",
+      "station": "TB-03-ROT-TE",
+      "edge": "inject"
+    }
+  ],
+  "matched_preswirl": {
+    "pressure_retention": 0.92
+  }
+}

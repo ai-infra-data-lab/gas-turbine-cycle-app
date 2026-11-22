@@ -1,0 +1,324 @@
+{
+  "cases": {
+    "基準ロータ": {
+      "model": {
+        "schema_version": 1,
+        "name": "仮想ロータ",
+        "note": "仮想条件",
+        "material": {
+          "rho": 7810,
+          "E_GPa": 211,
+          "G_GPa": 81.2
+        },
+        "shafts": [
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          }
+        ],
+        "disks": [],
+        "bearings": [
+          {
+            "node": 0,
+            "kxx": 1000000,
+            "kyy": 1000000,
+            "kxy": 0,
+            "kyx": 0,
+            "cxx": 100,
+            "cyy": 100,
+            "cxy": 0,
+            "cyx": 0,
+            "source": "仮想"
+          },
+          {
+            "node": 6,
+            "kxx": 1000000,
+            "kyy": 1000000,
+            "kxy": 0,
+            "kyx": 0,
+            "cxx": 100,
+            "cyy": 100,
+            "cxy": 0,
+            "cyx": 0,
+            "source": "仮想"
+          }
+        ],
+        "seals": [],
+        "unbalances": [
+          {
+            "node": 2,
+            "g_mm": 2,
+            "phase_deg": 0
+          }
+        ],
+        "analysis": {
+          "max_rpm": 60000,
+          "operating_rpm": 39000,
+          "points": 31,
+          "probe_node": 4,
+          "modes": 6
+        }
+      },
+      "disks": [
+        {
+          "x_mm": 90,
+          "mass_kg": 0.3,
+          "Id_kgm2": 0.0004,
+          "Ip_kgm2": 0.0007
+        },
+        {
+          "x_mm": 180,
+          "mass_kg": 0.45,
+          "Id_kgm2": 0.0006,
+          "Ip_kgm2": 0.001
+        }
+      ],
+      "bearing_tables": [
+        {
+          "bearing_index": 0,
+          "bearing_id": "A",
+          "source": "仮想の回転数係数表",
+          "rows": [
+            {
+              "rpm": 30000,
+              "kxx": 1200000,
+              "kyy": 1320000,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            },
+            {
+              "rpm": 50000,
+              "kxx": 1800000,
+              "kyy": 1980000.0000000002,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            }
+          ]
+        },
+        {
+          "bearing_index": 1,
+          "bearing_id": "B",
+          "source": "仮想の回転数係数表",
+          "rows": [
+            {
+              "rpm": 30000,
+              "kxx": 1200000,
+              "kyy": 1320000,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            },
+            {
+              "rpm": 50000,
+              "kxx": 1800000,
+              "kyy": 1980000.0000000002,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            }
+          ]
+        }
+      ]
+    },
+    "軽量ロータ": {
+      "model": {
+        "schema_version": 1,
+        "name": "仮想ロータ",
+        "note": "仮想条件",
+        "material": {
+          "rho": 7810,
+          "E_GPa": 211,
+          "G_GPa": 81.2
+        },
+        "shafts": [
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          },
+          {
+            "length_mm": 45,
+            "od_mm": 21,
+            "id_mm": 0
+          }
+        ],
+        "disks": [],
+        "bearings": [
+          {
+            "node": 0,
+            "kxx": 1000000,
+            "kyy": 1000000,
+            "kxy": 0,
+            "kyx": 0,
+            "cxx": 100,
+            "cyy": 100,
+            "cxy": 0,
+            "cyx": 0,
+            "source": "仮想"
+          },
+          {
+            "node": 6,
+            "kxx": 1000000,
+            "kyy": 1000000,
+            "kxy": 0,
+            "kyx": 0,
+            "cxx": 100,
+            "cyy": 100,
+            "cxy": 0,
+            "cyx": 0,
+            "source": "仮想"
+          }
+        ],
+        "seals": [],
+        "unbalances": [
+          {
+            "node": 2,
+            "g_mm": 2,
+            "phase_deg": 0
+          }
+        ],
+        "analysis": {
+          "max_rpm": 60000,
+          "operating_rpm": 39000,
+          "points": 31,
+          "probe_node": 4,
+          "modes": 6
+        }
+      },
+      "disks": [
+        {
+          "x_mm": 90,
+          "mass_kg": 0.24,
+          "Id_kgm2": 0.00032,
+          "Ip_kgm2": 0.0005600000000000001
+        },
+        {
+          "x_mm": 180,
+          "mass_kg": 0.36000000000000004,
+          "Id_kgm2": 0.00047999999999999996,
+          "Ip_kgm2": 0.0008
+        }
+      ],
+      "bearing_tables": [
+        {
+          "bearing_index": 0,
+          "bearing_id": "A",
+          "source": "仮想の回転数係数表",
+          "rows": [
+            {
+              "rpm": 30000,
+              "kxx": 1200000,
+              "kyy": 1320000,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            },
+            {
+              "rpm": 50000,
+              "kxx": 1800000,
+              "kyy": 1980000.0000000002,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            }
+          ]
+        },
+        {
+          "bearing_index": 1,
+          "bearing_id": "B",
+          "source": "仮想の回転数係数表",
+          "rows": [
+            {
+              "rpm": 30000,
+              "kxx": 1200000,
+              "kyy": 1320000,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            },
+            {
+              "rpm": 50000,
+              "kxx": 1800000,
+              "kyy": 1980000.0000000002,
+              "kxy": 0,
+              "kyx": 0,
+              "cxx": 100,
+              "cyy": 110,
+              "cxy": 0,
+              "cyx": 0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -147,6 +147,54 @@ class JointEngineTests(unittest.TestCase):
         x=j.default_input(); a=j.analyze(x); x['material']['temperature_k']=1000
         self.assertEqual(a['checks'],j.analyze(x)['checks'])
 
+    def test_projected_areas_and_signed_load_transfer_for_both_joint_types(self):
+        thrust=dict(surfaces=[dict(name='円環A',outer_diameter_m=.12,inner_diameter_m=.06,pressure_difference_pa=200000),
+                              dict(name='円環B',outer_diameter_m=.10,inner_diameter_m=.04,pressure_difference_pa=-100000)],
+                    other_axial_force_n=500)
+        area_a=math.pi*(.12**2-.06**2)/4
+        area_b=math.pi*(.10**2-.04**2)/4
+        expected=200000*area_a-100000*area_b+500
+        for kind in ('spline','curvic'):
+            with self.subTest(kind=kind):
+                manual=j.default_input(kind)
+                computed=copy.deepcopy(manual)
+                computed['thrust']=thrust
+                manual['load']['axial_force_n']=expected
+                r=j.analyze(computed)
+                self.assertAlmostEqual(r['nominal_axial_force_n'],expected)
+                self.assertAlmostEqual(r['design_opening_force_n'],expected*computed['load']['service_factor'])
+                self.assertAlmostEqual(r['thrust_calculation']['surfaces'][1]['projected_area_m2'],area_b)
+                self.assertAlmostEqual(r['thrust_calculation']['surfaces'][1]['axial_force_n'],-100000*area_b)
+                baseline=j.analyze(manual)
+                for actual,wanted in zip(r['checks'],baseline['checks']):
+                    self.assertAlmostEqual(actual['demand'],wanted['demand'],places=6)
+
+    def test_compression_affects_curvic_stress_without_crediting_preload(self):
+        inp=j.default_input('curvic')
+        inp['load']['axial_force_n']=0
+        baseline=j.analyze(inp)
+        inp['load']['axial_force_n']=-4000
+        current=j.analyze(inp)
+        self.assertEqual(current['design_opening_force_n'],0)
+        self.assertEqual(current['design_closing_force_n'],6000)
+        self.assertEqual(current['required_retained_preload_n'],baseline['required_retained_preload_n'])
+        checks=lambda r:{row['key']:row['demand'] for row in r['checks']}
+        self.assertGreater(checks(current)['bearing'],checks(baseline)['bearing'])
+        self.assertGreater(checks(current)['shaft_equivalent'],checks(baseline)['shaft_equivalent'])
+        self.assertEqual(checks(current)['bolt_tension'],checks(baseline)['bolt_tension'])
+
+    def test_thrust_validation_and_legacy_result_import(self):
+        inp=j.default_input()
+        legacy={**j.run_case(inp),'module_version':'0.1.0'}
+        self.assertEqual(j.read_input_file(legacy),j.validate_input(inp))
+        surface=dict(name='円環',outer_diameter_m=.1,inner_diameter_m=.02,pressure_difference_pa=100000)
+        for bad in ({**surface,'inner_diameter_m':.1}, {**surface,'pressure_difference_pa':math.nan},
+                    {**surface,'name':' '}, {**surface,'outer_diameter_m':True}):
+            inp['thrust']=dict(surfaces=[bad],other_axial_force_n=0)
+            with self.assertRaises(ValueError):j.analyze(inp)
+        inp['thrust']=dict(surfaces=[{**surface,'outer_diameter_m':5,'pressure_difference_pa':1e9}],other_axial_force_n=0)
+        with self.assertRaisesRegex(ValueError,'入力範囲'):j.analyze(inp)
+
     def test_cycle_power_requires_explicit_location(self):
         case=cycle_case(cycle_input())
         for position,key in [('compressor','compressor_power_w'),('turbine','turbine_shaft_power_w'),('net_shaft','net_shaft_power_w')]:
@@ -182,8 +230,12 @@ class JointAPITests(unittest.TestCase):
             self.assertEqual(self.request(path)[0],200,path)
 
     def test_save_recalculates_and_separates_databases(self):
-        inp=j.default_input(); status,body=self.request('/api/joints/save',{'input':inp,'result':{'fabricated':True}})
+        inp=j.default_input()
+        inp['thrust']=dict(surfaces=[dict(name='軸端',outer_diameter_m=.1,inner_diameter_m=0,pressure_difference_pa=500000)],
+                           other_axial_force_n=-500)
+        status,body=self.request('/api/joints/save',{'input':inp,'result':{'fabricated':True}})
         self.assertEqual(status,200); case=json.loads(body)
+        self.assertAlmostEqual(case['result']['nominal_axial_force_n'],500000*math.pi*.1**2/4-500)
         self.assertNotIn('fabricated',case['result'])
         self.assertEqual(json.loads(self.request('/api/joints/case?id='+case['run_id'])[1]),case)
         self.assertEqual(self.request('/api/case?id='+case['run_id'])[0],404)

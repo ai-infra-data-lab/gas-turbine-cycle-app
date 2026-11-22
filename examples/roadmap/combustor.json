@@ -1,0 +1,12 @@
+{
+  "identical_cans": 1,
+  "air_split": {
+    "primary": 0.32,
+    "secondary": 0.18,
+    "dilution": 0.35,
+    "liner_cooling": 0.15
+  },
+  "target_total_temperature_k": 1123,
+  "reference_area_per_can_m2": 0.004,
+  "loss_coefficient": 2
+}

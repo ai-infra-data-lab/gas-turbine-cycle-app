@@ -17,6 +17,12 @@ if __package__:
     from . import shaft_joints as joints
     from .joint_store import JointStore
     from . import evaluation
+    from . import compressor_sizing
+    from . import diffuser_analysis
+    from . import two_stage_design
+    from . import two_stage_performance
+    from .design_tools import TARGETS as DESIGN_TOOLS, run_isolated
+    from .tools import vaned_two_stage
 else:
     from engine import run_case, sweep
     from model import MODULE_ID, MODULE_VERSION, default_input, ui_schema, validate_input, element_stage, cooling_circuit
@@ -25,6 +31,12 @@ else:
     import shaft_joints as joints
     from joint_store import JointStore
     import evaluation
+    import compressor_sizing
+    import diffuser_analysis
+    import two_stage_design
+    import two_stage_performance
+    from design_tools import TARGETS as DESIGN_TOOLS, run_isolated
+    from tools import vaned_two_stage
 
 ROOT = Path(__file__).resolve().parent
 TOKEN = secrets.token_urlsafe(32)
@@ -67,12 +79,39 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path.path == "/":
                 return self.send(200, (ROOT / "static/index.html").read_text(encoding="utf-8").replace("__TOKEN__", TOKEN), "text/html; charset=utf-8")
+            if path.path == "/two-stage-compressor":
+                page = (ROOT/"static/two-stage.html").read_text(encoding="utf-8")
+                return self.send(200, page.replace("__TOKEN__", TOKEN), "text/html; charset=utf-8")
+            if path.path == "/design-tools":
+                page = (ROOT/"static/design-tools.html").read_text(encoding="utf-8")
+                return self.send(200, page.replace("__TOKEN__", TOKEN), "text/html; charset=utf-8")
+            if path.path == "/api/design-tools-example":
+                tool = query.get("tool", [""])[0]
+                if tool not in DESIGN_TOOLS:
+                    return self.json({"error":"連携機能を選択してください。"}, 400)
+                if tool == "cooling" and query.get("variant") == ["rotating"]:
+                    tool = "cooling-rotating"
+                return self.send(200, (ROOT/"examples/roadmap"/f"{tool}.json").read_bytes())
+            if path.path == "/api/sizing/two-stage-fields":
+                return self.json({"sizing":compressor_sizing.FIELDS, "edges":two_stage_design.EDGE_FIELDS,
+                                  "edge_types":two_stage_design.EDGE_TYPES, "vaned":vaned_two_stage.schema()})
+            if path.path == "/compressor-sizing":
+                page = (ROOT/"static/compressor-sizing.html").read_text(encoding="utf-8")
+                return self.send(200, page.replace("__TOKEN__", TOKEN), "text/html; charset=utf-8")
+            if path.path == "/api/sizing/fields":
+                return self.json(compressor_sizing.FIELDS)
             if path.path == '/shaft-joints':
                 return self.send(200,(ROOT/'static/joints.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
             if path.path == '/test-evaluation':
                 return self.send(200,(ROOT/'static/evaluation.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
             static = {"/app.js": ("static/app.js", "text/javascript; charset=utf-8"),
                       "/style.css": ("static/style.css", "text/css; charset=utf-8"),
+                      "/compressor-sizing.js": ("static/compressor-sizing.js", "text/javascript; charset=utf-8"),
+                      "/two-stage.js": ("static/two-stage.js", "text/javascript; charset=utf-8"),
+                      "/design-tools.js": ("static/design-tools.js", "text/javascript; charset=utf-8"),
+                      "/design-tools/guide": ("DESIGN_TOOLS.md", "text/plain; charset=utf-8"),
+                      "/two-stage-performance-example.json": ("examples/two_stage_performance_sample.json", "application/json; charset=utf-8"),
+                      "/compressor-sizing/guide": ("COMPRESSOR_SIZING.md", "text/plain; charset=utf-8"),
                       "/guide": ("static/guide.html", "text/html; charset=utf-8"),
                       '/evaluation.js':('static/evaluation.js','text/javascript; charset=utf-8'),
                       '/evaluation.css':('static/evaluation.css','text/css; charset=utf-8'),
@@ -92,6 +131,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json(self.server.store.get(query.get("id", [""])[0]))
             if path.path == '/api/joints/schema':
                 return self.json({'module_id':joints.MODULE_ID,'module_version':joints.MODULE_VERSION,
+                                  'max_thrust_surfaces':joints.MAX_THRUST_SURFACES,
                                   'fields':{k:joints.schema(k) for k in ('spline','curvic')},
                                   'defaults':{k:joints.default_input(k) for k in ('spline','curvic')}})
             if path.path == '/api/joints/cases': return self.json(self.server.joint_store.list())
@@ -120,6 +160,24 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError("JSONオブジェクトを指定してください。")
             if self.path == "/api/calculate":
                 return self.json(run_case(data.get("input")))
+            if self.path == "/api/design-tools":
+                tool = data.get("tool")
+                return self.json(run_isolated(tool, data))
+            if self.path in ("/api/sizing/two-stage", "/api/sizing/two-stage-performance"):
+                case_id = data.get("case_id")
+                base = self.server.store.get(case_id) if case_id else run_case(two_stage_design.sample_cycle_input())
+                if self.path == "/api/sizing/two-stage-performance":
+                    return self.json(two_stage_performance.compare(base, data.get("document")))
+                return self.json(two_stage_design.design(base, data.get("stages"), data.get("blade_edges"),
+                    data.get("stage1_share"), data.get("search_min_pct",25), data.get("search_max_pct",75),
+                    vaned_options=data.get("vaned_options")))
+            if self.path in ("/api/sizing/calculate", "/api/sizing/diffuser"):
+                case_id = data.get("case_id")
+                case = self.server.store.get(case_id) if case_id else compressor_sizing.sample_case()
+                if self.path == "/api/sizing/diffuser":
+                    return self.json(diffuser_analysis.analyze(
+                        case, data.get("assumptions"), data.get("darcy_friction_factor", .018)))
+                return self.json(compressor_sizing.size_stage(case, data.get("assumptions")))
             if self.path == "/api/save":
                 # Never accept a client-supplied result as a verified calculation.
                 return self.json(self.server.store.save(run_case(data.get("input"))))

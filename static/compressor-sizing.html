@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="cycle-token" content="__TOKEN__"><title>遠心圧縮機の概略寸法設計</title>
+<link rel="stylesheet" href="/evaluation.css"><script defer src="/compressor-sizing.js"></script>
+</head><body>
+<header><div><h1>遠心圧縮機の概略寸法設計</h1><p>サイクルの設計点から、インペラーとベーンなしディフューザーの子午面を作成します。</p></div>
+<nav><a href="/">サイクル計算</a><a href="/two-stage-compressor">2段の設計</a><a href="/compressor-sizing/guide">操作・計算方法</a></nav></header>
+<main>
+<section><h2>サイクルケースと設計条件</h2>
+<form id="sizing-form">
+<label>サイクルケース<select id="cycle-case" disabled><option value="">仮想サンプル（42,000 rpm、圧力比2.4）</option></select></label>
+<p>保存ケースを使うには、圧縮機を単段にし、要素モードとディフューザーを有効、リターンチャネルと冷却抽気を無効にしてください。</p>
+<div id="assumptions" class="grid"></div>
+<button id="calculate" class="primary" disabled>寸法と子午面を計算</button>
+</form><div id="error" role="alert"></div>
+</section>
+<section id="result" hidden>
+<h2>子午面と概略寸法</h2><p id="source"></p><figure>
+<svg id="plot" width="100%" height="340" role="img" aria-label="インペラーとディフューザーの子午面。横軸が軸方向、縦軸が半径方向"></svg>
+<figcaption>青はインペラー、緑はディフューザー。横軸は軸方向、縦軸は半径方向です。縦横は同じ縮尺です。</figcaption>
+</figure><div class="table-scroll"><table><thead><tr><th>項目</th><th>概略形状の計算値</th><th>サイクル側の値</th></tr></thead><tbody id="values"></tbody></table></div>
+<p>上表の圧力回復は、サイクルの全圧と概略設計で求めた速度から算出した比較値です。</p>
+<button type="button" id="download" disabled>寸法・子午面JSONを書き出す</button>
+<p>出力したJSONは遠心翼設計アプリの編集用プロジェクトに変換できます。変換コマンドは操作ガイドに記載しています。</p>
+</section>
+<section id="diffuser" hidden>
+<h2>ディフューザーの圧力損失とサイクル比較</h2>
+<p>表示中の子午面の径と幅を使い、壁面摩擦による全圧損失と旋回の減衰を計算します。係数にはダーシー摩擦係数を指定します。剥離・入口混合の損失は含みません。</p>
+<form id="diffuser-form">
+<label>ダーシー摩擦係数<input id="darcy" type="number" min="0" max="0.12" step="any" value="0.018" required></label>
+<button id="analyze-diffuser" class="primary" type="submit">形状損失を計算してサイクルを比較</button>
+</form>
+<p id="diffuser-status" role="status"></p>
+<div id="diffuser-results" hidden>
+<div class="table-scroll"><table>
+<thead><tr><th>項目</th><th>形状からの計算値</th><th>元のサイクル</th><th>段圧力比を固定</th><th>形状と比仕事を固定</th></tr></thead>
+<tbody id="diffuser-values"></tbody></table></div>
+<p id="diffuser-grid"></p><p id="cycle-note"></p>
+<details><summary>半径ごとの圧力・流速</summary><div class="table-scroll"><table>
+<thead><tr><th>半径 mm</th><th>幅 mm</th><th>全圧 kPa</th><th>静圧 kPa</th><th>半径方向 m/s</th><th>旋回 m/s</th><th>マッハ数</th></tr></thead>
+<tbody id="diffuser-stations"></tbody></table></div></details>
+<div class="actions">
+<button type="button" id="diffuser-download">解析JSONを書き出す</button>
+<button type="button" id="cycle-download">段圧力比を固定したケースを書き出す</button>
+<button type="button" id="geometry-cycle-download">形状を固定したケースを書き出す</button>
+</div>
+</div></section>
+</main></body></html>

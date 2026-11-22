@@ -1,0 +1,1384 @@
+{
+  "schema_version": "0.3",
+  "geometry": {
+    "r_le": 100.0,
+    "r_te": 160.0,
+    "theta_le_deg": 0.0,
+    "vane_count": 20
+  },
+  "blade_angle": {
+    "points": [
+      {
+        "m_blade_norm": 0.0,
+        "value": 65.0
+      },
+      {
+        "m_blade_norm": 0.25,
+        "value": 62.0
+      },
+      {
+        "m_blade_norm": 0.5,
+        "value": 58.0
+      },
+      {
+        "m_blade_norm": 0.75,
+        "value": 54.0
+      },
+      {
+        "m_blade_norm": 1.0,
+        "value": 50.0
+      }
+    ]
+  },
+  "thickness": {
+    "points": [
+      {
+        "m_blade_norm": 0.0,
+        "value": 1.0
+      },
+      {
+        "m_blade_norm": 0.35,
+        "value": 4.0
+      },
+      {
+        "m_blade_norm": 1.0,
+        "value": 1.0
+      }
+    ]
+  },
+  "edges": {
+    "le_type": "circular",
+    "le_ellipse_ratio": 1.0,
+    "te_type": "circular",
+    "te_ellipse_ratio": 1.0
+  },
+  "output_points": {
+    "le_points": 21,
+    "ps_points": 101,
+    "te_points": 21,
+    "ss_points": 101
+  },
+  "export": {
+    "significant_digits": 6,
+    "repeat_first_point": false
+  },
+  "rotation_direction": "ccw",
+  "surface_mapping": "auto",
+  "hub": {
+    "start_z": 67.92737745278693,
+    "start_r": 145.73484232438668,
+    "start_angle_deg": 82.67200144051796,
+    "segments": [
+      {
+        "length": 2.827992573002667
+      },
+      {
+        "length": 2.9058127110264724,
+        "inlet_turn_deg": -8.605710028508327
+      },
+      {
+        "length": 3.011514230768931,
+        "inlet_turn_deg": -7.668653721314342
+      },
+      {
+        "length": 3.1213310166742616,
+        "inlet_turn_deg": -6.839017734631113
+      },
+      {
+        "length": 3.2183172298074507,
+        "inlet_turn_deg": -6.169608235144295
+      },
+      {
+        "length": 3.2910523574226116,
+        "inlet_turn_deg": -5.674267776261104
+      },
+      {
+        "length": 3.3320935766804025,
+        "inlet_turn_deg": -5.3497597991611485
+      },
+      {
+        "length": 3.3367737782433893,
+        "inlet_turn_deg": -5.18906311821101
+      },
+      {
+        "length": 3.302442040338734,
+        "inlet_turn_deg": -5.188231389038151
+      },
+      {
+        "length": 3.2281060179342513,
+        "inlet_turn_deg": -5.349410916076295
+      },
+      {
+        "length": 3.11446848813529,
+        "inlet_turn_deg": -5.681433422181158
+      },
+      {
+        "length": 2.96445936553878,
+        "inlet_turn_deg": -6.197886211159698
+      },
+      {
+        "length": 2.784518699988458,
+        "inlet_turn_deg": -6.910715648437844
+      },
+      {
+        "length": 2.5870063257895985,
+        "inlet_turn_deg": -7.815111454296215
+      },
+      {
+        "length": 2.393860493648274,
+        "inlet_turn_deg": -8.86011600173967
+      },
+      {
+        "length": 2.2401894677017875,
+        "inlet_turn_deg": -9.906517532567051
+      },
+      {
+        "length": 2.1734081453929828,
+        "inlet_turn_deg": -10.706202615739983
+      },
+      {
+        "length": 2.242189635198143,
+        "inlet_turn_deg": -10.985452780397964
+      },
+      {
+        "length": 2.4774114914663405,
+        "inlet_turn_deg": -10.637350780382917
+      },
+      {
+        "length": 2.880307762363924,
+        "inlet_turn_deg": -9.794872450646551
+      },
+      {
+        "length": 3.4291332842470426,
+        "inlet_turn_deg": -8.686940713720503
+      },
+      {
+        "length": 4.09564597457827,
+        "inlet_turn_deg": -7.510448336683339
+      },
+      {
+        "length": 4.856666959071776,
+        "inlet_turn_deg": -6.397892537288612
+      },
+      {
+        "length": 5.696990407344306,
+        "inlet_turn_deg": -5.4178896455056815
+      },
+      {
+        "length": 4.119332736532112,
+        "inlet_turn_deg": -0.7802716583880169
+      },
+      {
+        "length": 4.6422900352728265,
+        "inlet_turn_deg": 3.788829869682246
+      },
+      {
+        "length": 5.157732586331957,
+        "inlet_turn_deg": 3.0823806367786233
+      },
+      {
+        "length": 5.6438327765260325,
+        "inlet_turn_deg": 2.6886235304335173
+      },
+      {
+        "length": 6.091184865966303,
+        "inlet_turn_deg": 2.474050661006146
+      },
+      {
+        "length": 6.495924022812455,
+        "inlet_turn_deg": 2.3725624124956823
+      },
+      {
+        "length": 6.857043541398285,
+        "inlet_turn_deg": 2.349082185504386
+      },
+      {
+        "length": 7.175250288784005,
+        "inlet_turn_deg": 2.3841739588733617
+      },
+      {
+        "length": 7.452454591259698,
+        "inlet_turn_deg": 2.4668569433517575
+      },
+      {
+        "length": 7.691548591375047,
+        "inlet_turn_deg": 2.5909473100246316
+      },
+      {
+        "length": 7.896325490793299,
+        "inlet_turn_deg": 2.753012583781981
+      },
+      {
+        "length": 8.071468450167565,
+        "inlet_turn_deg": 2.9510722241619476
+      },
+      {
+        "length": 8.222568077366248,
+        "inlet_turn_deg": 3.183611510244475
+      },
+      {
+        "length": 8.356138584616724,
+        "inlet_turn_deg": 3.4486716696805786
+      },
+      {
+        "length": 8.479606372701967,
+        "inlet_turn_deg": 3.7428862519755626
+      },
+      {
+        "length": 8.601247808919478,
+        "inlet_turn_deg": 4.0604237158916305
+      },
+      {
+        "length": 8.730060975569264,
+        "inlet_turn_deg": 4.391911410450376
+      },
+      {
+        "length": 8.875573420823315,
+        "inlet_turn_deg": 4.723575723720273
+      },
+      {
+        "length": 9.047613481631112,
+        "inlet_turn_deg": 5.03701317222891
+      },
+      {
+        "length": 9.256095044081091,
+        "inlet_turn_deg": 5.310110517434111
+      },
+      {
+        "length": 9.510862822831502,
+        "inlet_turn_deg": 5.519492614156519
+      },
+      {
+        "length": 9.821601042131226,
+        "inlet_turn_deg": 5.644363493020165
+      },
+      {
+        "length": 10.197739771712152,
+        "inlet_turn_deg": 5.670824489610368
+      },
+      {
+        "length": 10.648257650144485,
+        "inlet_turn_deg": 5.595156730365716
+      }
+    ],
+    "export_points": 501
+  },
+  "shroud": {
+    "start_z": 61.57202213432366,
+    "start_r": 145.73484232438668,
+    "start_angle_deg": 87.3298796352833,
+    "segments": [
+      {
+        "length": 3.858543524909162
+      },
+      {
+        "length": 3.8713029037163134,
+        "inlet_turn_deg": -8.68014614833183
+      },
+      {
+        "length": 3.9069446615253187,
+        "inlet_turn_deg": -7.779636507134342
+      },
+      {
+        "length": 3.9539883151105784,
+        "inlet_turn_deg": -6.954220378899322
+      },
+      {
+        "length": 4.002343863865345,
+        "inlet_turn_deg": -6.2697222780337825
+      },
+      {
+        "length": 4.043955914649428,
+        "inlet_turn_deg": -5.7492248882919625
+      },
+      {
+        "length": 4.073151966629907,
+        "inlet_turn_deg": -5.394681827539273
+      },
+      {
+        "length": 4.086748470196747,
+        "inlet_turn_deg": -5.201581574252032
+      },
+      {
+        "length": 4.084078021426069,
+        "inlet_turn_deg": -5.16701723868357
+      },
+      {
+        "length": 4.067056879624392,
+        "inlet_turn_deg": -5.2934956703632
+      },
+      {
+        "length": 4.040326511185349,
+        "inlet_turn_deg": -5.590050320942993
+      },
+      {
+        "length": 4.011390783796584,
+        "inlet_turn_deg": -6.070746617593443
+      },
+      {
+        "length": 3.990496987784288,
+        "inlet_turn_deg": -6.748874750377695
+      },
+      {
+        "length": 3.989767022279044,
+        "inlet_turn_deg": -7.623179471934918
+      },
+      {
+        "length": 4.0209790565531245,
+        "inlet_turn_deg": -8.652212523017198
+      },
+      {
+        "length": 4.092130497196808,
+        "inlet_turn_deg": -9.720261284056335
+      },
+      {
+        "length": 4.205237780837572,
+        "inlet_turn_deg": -10.62024686374022
+      },
+      {
+        "length": 4.359728835648949,
+        "inlet_turn_deg": -11.100519172527356
+      },
+      {
+        "length": 4.561189881615269,
+        "inlet_turn_deg": -10.988005640881113
+      },
+      {
+        "length": 4.826013170107076,
+        "inlet_turn_deg": -10.299289928425651
+      },
+      {
+        "length": 5.175143753361052,
+        "inlet_turn_deg": -9.225070600500146
+      },
+      {
+        "length": 5.624062465948231,
+        "inlet_turn_deg": -8.006456349196014
+      },
+      {
+        "length": 6.17859779227935,
+        "inlet_turn_deg": -6.826134977819777
+      },
+      {
+        "length": 6.8369238455387356,
+        "inlet_turn_deg": -5.778580093603068
+      },
+      {
+        "length": 3.2039230954692988,
+        "inlet_turn_deg": 1.005102396609857
+      },
+      {
+        "length": 3.9130282395552176,
+        "inlet_turn_deg": 3.128039464272092
+      },
+      {
+        "length": 4.525791728643404,
+        "inlet_turn_deg": 2.6487432171646788
+      },
+      {
+        "length": 5.060951675108311,
+        "inlet_turn_deg": 2.3815627211148467
+      },
+      {
+        "length": 5.527798608635423,
+        "inlet_turn_deg": 2.24725423878283
+      },
+      {
+        "length": 5.9318124804371335,
+        "inlet_turn_deg": 2.2006635347477754
+      },
+      {
+        "length": 6.276870068215472,
+        "inlet_turn_deg": 2.2167242644728162
+      },
+      {
+        "length": 6.566235370274354,
+        "inlet_turn_deg": 2.2814108868539336
+      },
+      {
+        "length": 6.80307546698544,
+        "inlet_turn_deg": 2.386898010495031
+      },
+      {
+        "length": 6.9907834174219285,
+        "inlet_turn_deg": 2.528930082478041
+      },
+      {
+        "length": 7.133227888448042,
+        "inlet_turn_deg": 2.7052787121359643
+      },
+      {
+        "length": 7.2349863936366425,
+        "inlet_turn_deg": 2.91470809652634
+      },
+      {
+        "length": 7.301591344256272,
+        "inlet_turn_deg": 3.1561360736709503
+      },
+      {
+        "length": 7.339801946306658,
+        "inlet_turn_deg": 3.427810752553256
+      },
+      {
+        "length": 7.357899330727721,
+        "inlet_turn_deg": 3.7264033746995437
+      },
+      {
+        "length": 7.365980386386096,
+        "inlet_turn_deg": 4.045996703452971
+      },
+      {
+        "length": 7.376193543928125,
+        "inlet_turn_deg": 4.377058614144573
+      },
+      {
+        "length": 7.402818961224287,
+        "inlet_turn_deg": 4.705647830802917
+      },
+      {
+        "length": 7.462060050740737,
+        "inlet_turn_deg": 5.01327603769451
+      },
+      {
+        "length": 7.571414062197281,
+        "inlet_turn_deg": 5.277946333502314
+      },
+      {
+        "length": 7.748566371100495,
+        "inlet_turn_deg": 5.476728769710547
+      },
+      {
+        "length": 8.009921487594841,
+        "inlet_turn_deg": 5.589685245918076
+      },
+      {
+        "length": 8.36908838782069,
+        "inlet_turn_deg": 5.604145370548622
+      },
+      {
+        "length": 8.83575015081159,
+        "inlet_turn_deg": 5.517767543327977
+      }
+    ],
+    "export_points": 501
+  },
+  "sections": [
+    {
+      "span": 0.0,
+      "blade_angle": {
+        "points": [
+          {
+            "m_blade_norm": 0.0,
+            "value": 65.0
+          },
+          {
+            "m_blade_norm": 0.25,
+            "value": 62.0
+          },
+          {
+            "m_blade_norm": 0.5,
+            "value": 58.0
+          },
+          {
+            "m_blade_norm": 0.75,
+            "value": 54.0
+          },
+          {
+            "m_blade_norm": 1.0,
+            "value": 50.0
+          }
+        ]
+      },
+      "thickness": {
+        "points": [
+          {
+            "m_blade_norm": 0.0,
+            "value": 1.0
+          },
+          {
+            "m_blade_norm": 0.35,
+            "value": 4.0
+          },
+          {
+            "m_blade_norm": 1.0,
+            "value": 1.0
+          }
+        ]
+      },
+      "edge_parameters": {
+        "le_type": "circular",
+        "le_ellipse_ratio": 1.0,
+        "te_type": "circular",
+        "te_ellipse_ratio": 1.0
+      }
+    },
+    {
+      "span": 1.0,
+      "blade_angle": {
+        "points": [
+          {
+            "m_blade_norm": 0.0,
+            "value": 65.0
+          },
+          {
+            "m_blade_norm": 0.25,
+            "value": 62.0
+          },
+          {
+            "m_blade_norm": 0.5,
+            "value": 58.0
+          },
+          {
+            "m_blade_norm": 0.75,
+            "value": 54.0
+          },
+          {
+            "m_blade_norm": 1.0,
+            "value": 50.0
+          }
+        ]
+      },
+      "thickness": {
+        "points": [
+          {
+            "m_blade_norm": 0.0,
+            "value": 1.0
+          },
+          {
+            "m_blade_norm": 0.35,
+            "value": 4.0
+          },
+          {
+            "m_blade_norm": 1.0,
+            "value": 1.0
+          }
+        ]
+      },
+      "edge_parameters": {
+        "le_type": "circular",
+        "le_ellipse_ratio": 1.0,
+        "te_type": "circular",
+        "te_ellipse_ratio": 1.0
+      }
+    }
+  ],
+  "diffuser_profile": {
+    "span": 0.0,
+    "blade_angle": {
+      "points": [
+        {
+          "m_blade_norm": 0.0,
+          "value": 65.0
+        },
+        {
+          "m_blade_norm": 0.25,
+          "value": 62.0
+        },
+        {
+          "m_blade_norm": 0.5,
+          "value": 58.0
+        },
+        {
+          "m_blade_norm": 0.75,
+          "value": 54.0
+        },
+        {
+          "m_blade_norm": 1.0,
+          "value": 50.0
+        }
+      ]
+    },
+    "thickness": {
+      "points": [
+        {
+          "m_blade_norm": 0.0,
+          "value": 1.0
+        },
+        {
+          "m_blade_norm": 0.35,
+          "value": 4.0
+        },
+        {
+          "m_blade_norm": 1.0,
+          "value": 1.0
+        }
+      ]
+    },
+    "edge_parameters": {
+      "le_type": "circular",
+      "le_ellipse_ratio": 1.0,
+      "te_type": "circular",
+      "te_ellipse_ratio": 1.0
+    }
+  },
+  "turbogrid": {
+    "geometry_unit": "MM",
+    "rotation_axis": "Z",
+    "hub_curve_filename": "hub.curve",
+    "shroud_curve_filename": "shroud.curve",
+    "profile_curve_filename": "profile.curve",
+    "leading_edge_type": "auto",
+    "trailing_edge_type": "auto"
+  },
+  "blade_le_fraction": 0.15,
+  "blade_te_fraction": 0.85,
+  "impeller_edges": {
+    "leading_edge": {
+      "hub_m_flow_norm": 0.15,
+      "shroud_m_flow_norm": 0.15
+    },
+    "trailing_edge": {
+      "hub_m_flow_norm": 0.85,
+      "shroud_m_flow_norm": 0.85
+    },
+    "reference_le_fraction": 0.15,
+    "reference_te_fraction": 0.85,
+    "legacy_uniform_sampling": false
+  },
+  "diffuser_edges": {
+    "leading_edge": {
+      "hub_m_flow_norm": 0.9,
+      "shroud_m_flow_norm": 0.9
+    },
+    "trailing_edge": {
+      "hub_m_flow_norm": 0.96,
+      "shroud_m_flow_norm": 0.96
+    },
+    "reference_le_fraction": 0.9,
+    "reference_te_fraction": 0.96,
+    "legacy_uniform_sampling": false
+  },
+  "flow_path": {
+    "stations": [
+      {
+        "kind": "INLET",
+        "m_flow_norm": 0.0
+      },
+      {
+        "kind": "IMP_LE",
+        "m_flow_norm": 0.15
+      },
+      {
+        "kind": "IMP_TE",
+        "m_flow_norm": 0.85
+      },
+      {
+        "kind": "DIF_LE",
+        "m_flow_norm": 0.9
+      },
+      {
+        "kind": "DIF_TE",
+        "m_flow_norm": 0.96
+      },
+      {
+        "kind": "OUTLET",
+        "m_flow_norm": 1.0
+      }
+    ],
+    "align_blade_stations_to_crossflow": true
+  },
+  "resolution": {
+    "profile_points": 2001,
+    "edge_points": 401,
+    "wall_points": 8001,
+    "mean_points": 4001,
+    "area_points": 501
+  },
+  "blade_rows": [
+    {
+      "identifier": "return-channel",
+      "name": "Return channel walls",
+      "kind": "meridional",
+      "parameters": {
+        "geometry": {
+          "r_le": 100.0,
+          "r_te": 160.0,
+          "theta_le_deg": 0.0,
+          "vane_count": 20
+        },
+        "blade_angle": {
+          "points": [
+            {
+              "m_blade_norm": 0.0,
+              "value": 65.0
+            },
+            {
+              "m_blade_norm": 0.25,
+              "value": 62.0
+            },
+            {
+              "m_blade_norm": 0.5,
+              "value": 58.0
+            },
+            {
+              "m_blade_norm": 0.75,
+              "value": 54.0
+            },
+            {
+              "m_blade_norm": 1.0,
+              "value": 50.0
+            }
+          ]
+        },
+        "thickness": {
+          "points": [
+            {
+              "m_blade_norm": 0.0,
+              "value": 1.0
+            },
+            {
+              "m_blade_norm": 0.35,
+              "value": 4.0
+            },
+            {
+              "m_blade_norm": 1.0,
+              "value": 1.0
+            }
+          ]
+        },
+        "edges": {
+          "le_type": "circular",
+          "le_ellipse_ratio": 1.0,
+          "te_type": "circular",
+          "te_ellipse_ratio": 1.0
+        },
+        "output_points": {
+          "le_points": 21,
+          "ps_points": 101,
+          "te_points": 21,
+          "ss_points": 101
+        },
+        "export": {
+          "significant_digits": 6,
+          "repeat_first_point": false
+        },
+        "rotation_direction": "ccw",
+        "surface_mapping": "auto",
+        "hub": {
+          "start_z": 67.92737745278693,
+          "start_r": 145.73484232438668,
+          "start_angle_deg": 82.67200144051796,
+          "segments": [
+            {
+              "length": 2.827992573002667
+            },
+            {
+              "length": 2.9058127110264724,
+              "inlet_turn_deg": -8.605710028508327
+            },
+            {
+              "length": 3.011514230768931,
+              "inlet_turn_deg": -7.668653721314342
+            },
+            {
+              "length": 3.1213310166742616,
+              "inlet_turn_deg": -6.839017734631113
+            },
+            {
+              "length": 3.2183172298074507,
+              "inlet_turn_deg": -6.169608235144295
+            },
+            {
+              "length": 3.2910523574226116,
+              "inlet_turn_deg": -5.674267776261104
+            },
+            {
+              "length": 3.3320935766804025,
+              "inlet_turn_deg": -5.3497597991611485
+            },
+            {
+              "length": 3.3367737782433893,
+              "inlet_turn_deg": -5.18906311821101
+            },
+            {
+              "length": 3.302442040338734,
+              "inlet_turn_deg": -5.188231389038151
+            },
+            {
+              "length": 3.2281060179342513,
+              "inlet_turn_deg": -5.349410916076295
+            },
+            {
+              "length": 3.11446848813529,
+              "inlet_turn_deg": -5.681433422181158
+            },
+            {
+              "length": 2.96445936553878,
+              "inlet_turn_deg": -6.197886211159698
+            },
+            {
+              "length": 2.784518699988458,
+              "inlet_turn_deg": -6.910715648437844
+            },
+            {
+              "length": 2.5870063257895985,
+              "inlet_turn_deg": -7.815111454296215
+            },
+            {
+              "length": 2.393860493648274,
+              "inlet_turn_deg": -8.86011600173967
+            },
+            {
+              "length": 2.2401894677017875,
+              "inlet_turn_deg": -9.906517532567051
+            },
+            {
+              "length": 2.1734081453929828,
+              "inlet_turn_deg": -10.706202615739983
+            },
+            {
+              "length": 2.242189635198143,
+              "inlet_turn_deg": -10.985452780397964
+            },
+            {
+              "length": 2.4774114914663405,
+              "inlet_turn_deg": -10.637350780382917
+            },
+            {
+              "length": 2.880307762363924,
+              "inlet_turn_deg": -9.794872450646551
+            },
+            {
+              "length": 3.4291332842470426,
+              "inlet_turn_deg": -8.686940713720503
+            },
+            {
+              "length": 4.09564597457827,
+              "inlet_turn_deg": -7.510448336683339
+            },
+            {
+              "length": 4.856666959071776,
+              "inlet_turn_deg": -6.397892537288612
+            },
+            {
+              "length": 5.696990407344306,
+              "inlet_turn_deg": -5.4178896455056815
+            },
+            {
+              "length": 4.119332736532112,
+              "inlet_turn_deg": -0.7802716583880169
+            },
+            {
+              "length": 4.6422900352728265,
+              "inlet_turn_deg": 3.788829869682246
+            },
+            {
+              "length": 5.157732586331957,
+              "inlet_turn_deg": 3.0823806367786233
+            },
+            {
+              "length": 5.6438327765260325,
+              "inlet_turn_deg": 2.6886235304335173
+            },
+            {
+              "length": 6.091184865966303,
+              "inlet_turn_deg": 2.474050661006146
+            },
+            {
+              "length": 6.495924022812455,
+              "inlet_turn_deg": 2.3725624124956823
+            },
+            {
+              "length": 6.857043541398285,
+              "inlet_turn_deg": 2.349082185504386
+            },
+            {
+              "length": 7.175250288784005,
+              "inlet_turn_deg": 2.3841739588733617
+            },
+            {
+              "length": 7.452454591259698,
+              "inlet_turn_deg": 2.4668569433517575
+            },
+            {
+              "length": 7.691548591375047,
+              "inlet_turn_deg": 2.5909473100246316
+            },
+            {
+              "length": 7.896325490793299,
+              "inlet_turn_deg": 2.753012583781981
+            },
+            {
+              "length": 8.071468450167565,
+              "inlet_turn_deg": 2.9510722241619476
+            },
+            {
+              "length": 8.222568077366248,
+              "inlet_turn_deg": 3.183611510244475
+            },
+            {
+              "length": 8.356138584616724,
+              "inlet_turn_deg": 3.4486716696805786
+            },
+            {
+              "length": 8.479606372701967,
+              "inlet_turn_deg": 3.7428862519755626
+            },
+            {
+              "length": 8.601247808919478,
+              "inlet_turn_deg": 4.0604237158916305
+            },
+            {
+              "length": 8.730060975569264,
+              "inlet_turn_deg": 4.391911410450376
+            },
+            {
+              "length": 8.875573420823315,
+              "inlet_turn_deg": 4.723575723720273
+            },
+            {
+              "length": 9.047613481631112,
+              "inlet_turn_deg": 5.03701317222891
+            },
+            {
+              "length": 9.256095044081091,
+              "inlet_turn_deg": 5.310110517434111
+            },
+            {
+              "length": 9.510862822831502,
+              "inlet_turn_deg": 5.519492614156519
+            },
+            {
+              "length": 9.821601042131226,
+              "inlet_turn_deg": 5.644363493020165
+            },
+            {
+              "length": 10.197739771712152,
+              "inlet_turn_deg": 5.670824489610368
+            },
+            {
+              "length": 10.648257650144485,
+              "inlet_turn_deg": 5.595156730365716
+            }
+          ],
+          "export_points": 501
+        },
+        "shroud": {
+          "start_z": 61.57202213432366,
+          "start_r": 145.73484232438668,
+          "start_angle_deg": 87.3298796352833,
+          "segments": [
+            {
+              "length": 3.858543524909162
+            },
+            {
+              "length": 3.8713029037163134,
+              "inlet_turn_deg": -8.68014614833183
+            },
+            {
+              "length": 3.9069446615253187,
+              "inlet_turn_deg": -7.779636507134342
+            },
+            {
+              "length": 3.9539883151105784,
+              "inlet_turn_deg": -6.954220378899322
+            },
+            {
+              "length": 4.002343863865345,
+              "inlet_turn_deg": -6.2697222780337825
+            },
+            {
+              "length": 4.043955914649428,
+              "inlet_turn_deg": -5.7492248882919625
+            },
+            {
+              "length": 4.073151966629907,
+              "inlet_turn_deg": -5.394681827539273
+            },
+            {
+              "length": 4.086748470196747,
+              "inlet_turn_deg": -5.201581574252032
+            },
+            {
+              "length": 4.084078021426069,
+              "inlet_turn_deg": -5.16701723868357
+            },
+            {
+              "length": 4.067056879624392,
+              "inlet_turn_deg": -5.2934956703632
+            },
+            {
+              "length": 4.040326511185349,
+              "inlet_turn_deg": -5.590050320942993
+            },
+            {
+              "length": 4.011390783796584,
+              "inlet_turn_deg": -6.070746617593443
+            },
+            {
+              "length": 3.990496987784288,
+              "inlet_turn_deg": -6.748874750377695
+            },
+            {
+              "length": 3.989767022279044,
+              "inlet_turn_deg": -7.623179471934918
+            },
+            {
+              "length": 4.0209790565531245,
+              "inlet_turn_deg": -8.652212523017198
+            },
+            {
+              "length": 4.092130497196808,
+              "inlet_turn_deg": -9.720261284056335
+            },
+            {
+              "length": 4.205237780837572,
+              "inlet_turn_deg": -10.62024686374022
+            },
+            {
+              "length": 4.359728835648949,
+              "inlet_turn_deg": -11.100519172527356
+            },
+            {
+              "length": 4.561189881615269,
+              "inlet_turn_deg": -10.988005640881113
+            },
+            {
+              "length": 4.826013170107076,
+              "inlet_turn_deg": -10.299289928425651
+            },
+            {
+              "length": 5.175143753361052,
+              "inlet_turn_deg": -9.225070600500146
+            },
+            {
+              "length": 5.624062465948231,
+              "inlet_turn_deg": -8.006456349196014
+            },
+            {
+              "length": 6.17859779227935,
+              "inlet_turn_deg": -6.826134977819777
+            },
+            {
+              "length": 6.8369238455387356,
+              "inlet_turn_deg": -5.778580093603068
+            },
+            {
+              "length": 3.2039230954692988,
+              "inlet_turn_deg": 1.005102396609857
+            },
+            {
+              "length": 3.9130282395552176,
+              "inlet_turn_deg": 3.128039464272092
+            },
+            {
+              "length": 4.525791728643404,
+              "inlet_turn_deg": 2.6487432171646788
+            },
+            {
+              "length": 5.060951675108311,
+              "inlet_turn_deg": 2.3815627211148467
+            },
+            {
+              "length": 5.527798608635423,
+              "inlet_turn_deg": 2.24725423878283
+            },
+            {
+              "length": 5.9318124804371335,
+              "inlet_turn_deg": 2.2006635347477754
+            },
+            {
+              "length": 6.276870068215472,
+              "inlet_turn_deg": 2.2167242644728162
+            },
+            {
+              "length": 6.566235370274354,
+              "inlet_turn_deg": 2.2814108868539336
+            },
+            {
+              "length": 6.80307546698544,
+              "inlet_turn_deg": 2.386898010495031
+            },
+            {
+              "length": 6.9907834174219285,
+              "inlet_turn_deg": 2.528930082478041
+            },
+            {
+              "length": 7.133227888448042,
+              "inlet_turn_deg": 2.7052787121359643
+            },
+            {
+              "length": 7.2349863936366425,
+              "inlet_turn_deg": 2.91470809652634
+            },
+            {
+              "length": 7.301591344256272,
+              "inlet_turn_deg": 3.1561360736709503
+            },
+            {
+              "length": 7.339801946306658,
+              "inlet_turn_deg": 3.427810752553256
+            },
+            {
+              "length": 7.357899330727721,
+              "inlet_turn_deg": 3.7264033746995437
+            },
+            {
+              "length": 7.365980386386096,
+              "inlet_turn_deg": 4.045996703452971
+            },
+            {
+              "length": 7.376193543928125,
+              "inlet_turn_deg": 4.377058614144573
+            },
+            {
+              "length": 7.402818961224287,
+              "inlet_turn_deg": 4.705647830802917
+            },
+            {
+              "length": 7.462060050740737,
+              "inlet_turn_deg": 5.01327603769451
+            },
+            {
+              "length": 7.571414062197281,
+              "inlet_turn_deg": 5.277946333502314
+            },
+            {
+              "length": 7.748566371100495,
+              "inlet_turn_deg": 5.476728769710547
+            },
+            {
+              "length": 8.009921487594841,
+              "inlet_turn_deg": 5.589685245918076
+            },
+            {
+              "length": 8.36908838782069,
+              "inlet_turn_deg": 5.604145370548622
+            },
+            {
+              "length": 8.83575015081159,
+              "inlet_turn_deg": 5.517767543327977
+            }
+          ],
+          "export_points": 501
+        },
+        "sections": [
+          {
+            "span": 0.0,
+            "blade_angle": {
+              "points": [
+                {
+                  "m_blade_norm": 0.0,
+                  "value": 65.0
+                },
+                {
+                  "m_blade_norm": 0.25,
+                  "value": 62.0
+                },
+                {
+                  "m_blade_norm": 0.5,
+                  "value": 58.0
+                },
+                {
+                  "m_blade_norm": 0.75,
+                  "value": 54.0
+                },
+                {
+                  "m_blade_norm": 1.0,
+                  "value": 50.0
+                }
+              ]
+            },
+            "thickness": {
+              "points": [
+                {
+                  "m_blade_norm": 0.0,
+                  "value": 1.0
+                },
+                {
+                  "m_blade_norm": 0.35,
+                  "value": 4.0
+                },
+                {
+                  "m_blade_norm": 1.0,
+                  "value": 1.0
+                }
+              ]
+            },
+            "edge_parameters": {
+              "le_type": "circular",
+              "le_ellipse_ratio": 1.0,
+              "te_type": "circular",
+              "te_ellipse_ratio": 1.0
+            }
+          },
+          {
+            "span": 1.0,
+            "blade_angle": {
+              "points": [
+                {
+                  "m_blade_norm": 0.0,
+                  "value": 65.0
+                },
+                {
+                  "m_blade_norm": 0.25,
+                  "value": 62.0
+                },
+                {
+                  "m_blade_norm": 0.5,
+                  "value": 58.0
+                },
+                {
+                  "m_blade_norm": 0.75,
+                  "value": 54.0
+                },
+                {
+                  "m_blade_norm": 1.0,
+                  "value": 50.0
+                }
+              ]
+            },
+            "thickness": {
+              "points": [
+                {
+                  "m_blade_norm": 0.0,
+                  "value": 1.0
+                },
+                {
+                  "m_blade_norm": 0.35,
+                  "value": 4.0
+                },
+                {
+                  "m_blade_norm": 1.0,
+                  "value": 1.0
+                }
+              ]
+            },
+            "edge_parameters": {
+              "le_type": "circular",
+              "le_ellipse_ratio": 1.0,
+              "te_type": "circular",
+              "te_ellipse_ratio": 1.0
+            }
+          }
+        ],
+        "diffuser_profile": {
+          "span": 0.0,
+          "blade_angle": {
+            "points": [
+              {
+                "m_blade_norm": 0.0,
+                "value": 65.0
+              },
+              {
+                "m_blade_norm": 0.25,
+                "value": 62.0
+              },
+              {
+                "m_blade_norm": 0.5,
+                "value": 58.0
+              },
+              {
+                "m_blade_norm": 0.75,
+                "value": 54.0
+              },
+              {
+                "m_blade_norm": 1.0,
+                "value": 50.0
+              }
+            ]
+          },
+          "thickness": {
+            "points": [
+              {
+                "m_blade_norm": 0.0,
+                "value": 1.0
+              },
+              {
+                "m_blade_norm": 0.35,
+                "value": 4.0
+              },
+              {
+                "m_blade_norm": 1.0,
+                "value": 1.0
+              }
+            ]
+          },
+          "edge_parameters": {
+            "le_type": "circular",
+            "le_ellipse_ratio": 1.0,
+            "te_type": "circular",
+            "te_ellipse_ratio": 1.0
+          }
+        },
+        "turbogrid": {
+          "geometry_unit": "MM",
+          "rotation_axis": "Z",
+          "hub_curve_filename": "hub.curve",
+          "shroud_curve_filename": "shroud.curve",
+          "profile_curve_filename": "profile.curve",
+          "leading_edge_type": "auto",
+          "trailing_edge_type": "auto"
+        },
+        "blade_le_fraction": 0.15,
+        "blade_te_fraction": 0.85,
+        "impeller_edges": {
+          "leading_edge": {
+            "hub_m_flow_norm": 0.15,
+            "shroud_m_flow_norm": 0.15
+          },
+          "trailing_edge": {
+            "hub_m_flow_norm": 0.85,
+            "shroud_m_flow_norm": 0.85
+          },
+          "reference_le_fraction": 0.15,
+          "reference_te_fraction": 0.85,
+          "legacy_uniform_sampling": false
+        },
+        "diffuser_edges": {
+          "leading_edge": {
+            "hub_m_flow_norm": 0.9,
+            "shroud_m_flow_norm": 0.9
+          },
+          "trailing_edge": {
+            "hub_m_flow_norm": 0.96,
+            "shroud_m_flow_norm": 0.96
+          },
+          "reference_le_fraction": 0.9,
+          "reference_te_fraction": 0.96,
+          "legacy_uniform_sampling": false
+        },
+        "flow_path": {
+          "stations": [
+            {
+              "kind": "INLET",
+              "m_flow_norm": 0.0
+            },
+            {
+              "kind": "IMP_LE",
+              "m_flow_norm": 0.15
+            },
+            {
+              "kind": "IMP_TE",
+              "m_flow_norm": 0.85
+            },
+            {
+              "kind": "DIF_LE",
+              "m_flow_norm": 0.9
+            },
+            {
+              "kind": "DIF_TE",
+              "m_flow_norm": 0.96
+            },
+            {
+              "kind": "OUTLET",
+              "m_flow_norm": 1.0
+            }
+          ],
+          "align_blade_stations_to_crossflow": true
+        },
+        "resolution": {
+          "profile_points": 2001,
+          "edge_points": 401,
+          "wall_points": 8001,
+          "mean_points": 4001,
+          "area_points": 501
+        },
+        "blade_rows": null,
+        "active_blade_row": null
+      },
+      "independent_meridional": true
+    }
+  ],
+  "active_blade_row": "return-channel"
+}

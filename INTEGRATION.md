@@ -114,3 +114,9 @@ mixing要素はroute_indexでresult.cooling.routesへ対応。冷却流量、供
 ## 独立した試験データ評価
 
 `evaluation.py` / `gt.evaluation.test_comparison` v0.1.0、schema1。既存cycle v0.6.0/schema6は維持。`/test-evaluation` の画面と `/api/evaluation/*` を追加し、`*.test-evaluation.sqlite3`へ保存します。原CSV・対応付け・平均区間・再計算したcycle_caseとハッシュを保持。既存設計・軸締結・サイクルDBのレコードを書き換えません。契約は [TEST_EVALUATION.md](TEST_EVALUATION.md) を参照。
+
+## 2段圧縮機のCFD・試験性能反映
+
+`POST /api/sizing/two-stage-performance` は `{case_id, document}` を受け付ける。`case_id` を省略すると仮想基準を使う。`document` は `centrifugal-two-stage-performance` schema 1。入力項目と評価断面は [COMPRESSOR_SIZING.md](COMPRESSOR_SIZING.md) を参照。
+
+応答は `centrifugal-two-stage-performance-comparison` schema 1。基準の `source_run_id`・`source_input_hash`、元の `performance`、`cycle_cases`（`equal` と `75-percent` の通常のサイクルケース）を返す。APIは計算のみを実行する。各ケースは通常のサイクル取込で利用できる。

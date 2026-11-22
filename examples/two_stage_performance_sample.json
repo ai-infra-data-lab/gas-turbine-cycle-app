@@ -1,0 +1,40 @@
+{
+  "format": "centrifugal-two-stage-performance",
+  "schema_version": 1,
+  "conditions": {
+    "inlet_total_temperature_k": 288.15,
+    "inlet_total_pressure_pa": 100311.75,
+    "air_mass_flow_kg_s": 0.7,
+    "shaft_speed_rpm": 39000
+  },
+  "designs": {
+    "equal": {
+      "source_kind": "synthetic",
+      "source_reference": "操作確認用の仮想性能・均等配分案",
+      "stages": [
+        {"pressure_ratio": 1.79, "total_to_total_efficiency": 0.79},
+        {"pressure_ratio": 1.79, "total_to_total_efficiency": 0.75}
+      ],
+      "pressure_retentions": {
+        "diffuser_1": 0.983,
+        "return_channel": 0.990,
+        "diffuser_2": 0.982,
+        "outlet_guide_vane": 0.997
+      }
+    },
+    "75-percent": {
+      "source_kind": "synthetic",
+      "source_reference": "操作確認用の仮想性能・75%配分案",
+      "stages": [
+        {"pressure_ratio": 2.38, "total_to_total_efficiency": 0.81},
+        {"pressure_ratio": 1.35, "total_to_total_efficiency": 0.74}
+      ],
+      "pressure_retentions": {
+        "diffuser_1": 0.980,
+        "return_channel": 0.989,
+        "diffuser_2": 0.985,
+        "outlet_guide_vane": 0.995
+      }
+    }
+  }
+}

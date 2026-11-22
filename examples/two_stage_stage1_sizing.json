@@ -1,0 +1,222 @@
+{
+  "format": "centrifugal-stage-sizing",
+  "schema_version": 1,
+  "module_version": "0.1.0",
+  "source": {
+    "run_id": "ff5f65cc-f0ac-431e-8266-1b30e095cff1",
+    "input_hash": "7c5a4a4453e567417146627499d9b0d4232e5fef93c7adb131db45feee2a6401",
+    "module_id": "gt.cycle.simple_single_shaft",
+    "module_version": "0.6.0",
+    "name": "2段遠心圧縮機・仮想設計例",
+    "context": {
+      "project_id": null,
+      "component_id": null,
+      "source_revision": null
+    },
+    "stage": 1
+  },
+  "assumptions": {
+    "hub_ratio": 0.5,
+    "exit_meridional_m_s": 105,
+    "backsweep_deg": 30,
+    "slip": 0.88,
+    "open_area_fraction": 0.95,
+    "tip_speed_limit_m_s": 520,
+    "diffuser_radius_ratio": 1.55,
+    "diffuser_exit_radial_m_s": 65
+  },
+  "dimensions": {
+    "inlet_hub_diameter_m": 0.04874024941838543,
+    "inlet_tip_diameter_m": 0.09748049883677086,
+    "impeller_exit_diameter_m": 0.1880449578379183,
+    "impeller_exit_width_m": 0.007006095841270763,
+    "diffuser_exit_diameter_m": 0.2914696846487734,
+    "diffuser_exit_width_m": 0.006355355318463271
+  },
+  "checks": {
+    "tip_speed_m_s": 383.9944277573343,
+    "inlet_tip_relative_mach": 0.6833265692801611,
+    "impeller_exit_relative_mach": 0.39926474076210827,
+    "impeller_exit_mach": 0.7908137387754813,
+    "diffuser_exit_mach": 0.4903030337790979,
+    "impeller_exit_swirl_m_s": 277.2933181615434,
+    "diffuser_exit_swirl_m_s": 178.89891494293124,
+    "inlet_hub_metal_angle_deg": -40.87527845729005,
+    "inlet_tip_metal_angle_deg": -59.98414507589596,
+    "work_residual_j_kg": 1.4551915228366852e-11,
+    "cp_at_sized_velocities": 0.532681130251456
+  },
+  "cycle_targets": {
+    "mass_flow_kg_s": 0.7,
+    "shaft_speed_rpm": 39000.0,
+    "impeller_work_j_kg": 106479.0890283743,
+    "impeller_exit_speed_m_s": 270.0,
+    "diffuser_exit_speed_m_s": 165.0,
+    "diffuser_cp": 0.5453073896733687,
+    "inlet": {
+      "total_temperature_k": 288.15,
+      "total_pressure_pa": 100311.75,
+      "velocity_m_s": 115.0,
+      "static_temperature_k": 281.5648096245502,
+      "static_pressure_pa": 92518.74386898136,
+      "density_kg_m3": 1.144695468935443,
+      "dynamic_pressure_pa": 7569.298788335616,
+      "mach": 0.3418270287831428,
+      "cp_j_kg_k": 1004.2796972902721,
+      "cv_j_kg_k": 717.2271607641867,
+      "gamma": 1.4002254128527962,
+      "gas_constant_j_kg_k": 287.05253652608536,
+      "molecular_weight_kg_kmol": 28.9651159353,
+      "sensible_enthalpy_j_kg": -10044.97962196819,
+      "entropy_thermal_function_j_kg_k": -34.26894473935444,
+      "mass_flow_kg_s": 0.7,
+      "effective_flow_area_m2": 0.005317533516053793
+    },
+    "impeller_exit": {
+      "total_temperature_k": 393.8070642192489,
+      "total_pressure_pa": 257423.44353428567,
+      "velocity_m_s": 270.0,
+      "static_temperature_k": 357.7425021056732,
+      "static_pressure_pa": 183562.8432476019,
+      "density_kg_m3": 1.7875279735716187,
+      "dynamic_pressure_pa": 65155.3946366855,
+      "mach": 0.7126769745473437,
+      "cp_j_kg_k": 1012.6897440998348,
+      "cv_j_kg_k": 725.6372075737495,
+      "gamma": 1.3955868490893377,
+      "gas_constant_j_kg_k": 287.05253652608536,
+      "molecular_weight_kg_kmol": 28.9651159353,
+      "sensible_enthalpy_j_kg": 96434.10940640609,
+      "entropy_thermal_function_j_kg_k": 280.47401732066436,
+      "mass_flow_kg_s": 0.7,
+      "effective_flow_area_m2": 0.0014503787526258358
+    },
+    "diffuser_exit": {
+      "total_temperature_k": 393.8070642192489,
+      "total_pressure_pa": 247650.13433878284,
+      "velocity_m_s": 165.0,
+      "static_temperature_k": 380.3546865336888,
+      "static_pressure_pa": 219092.56142007108,
+      "density_kg_m3": 2.006676996274259,
+      "dynamic_pressure_pa": 27315.890611783354,
+      "mach": 0.4225700481251336,
+      "cp_j_kg_k": 1012.6897440998348,
+      "cv_j_kg_k": 725.6372075737495,
+      "gamma": 1.3955868490893377,
+      "gas_constant_j_kg_k": 287.05253652608536,
+      "molecular_weight_kg_kmol": 28.9651159353,
+      "sensible_enthalpy_j_kg": 96434.10940640609,
+      "entropy_thermal_function_j_kg_k": 280.47401732066436,
+      "mass_flow_kg_s": 0.7,
+      "effective_flow_area_m2": 0.002114154021948242
+    }
+  },
+  "sizing_states": {
+    "impeller_exit": {
+      "total_temperature_k": 393.8070642192489,
+      "total_pressure_pa": 257423.44353428567,
+      "velocity_m_s": 296.507309011159,
+      "static_temperature_k": 350.29764880814946,
+      "static_pressure_pa": 170488.89941420796,
+      "density_kg_m3": 1.695498836174453,
+      "dynamic_pressure_pa": 74531.23317803135,
+      "mach": 0.7908137387754813,
+      "cp_j_kg_k": 1012.6897440998348,
+      "cv_j_kg_k": 725.6372075737495,
+      "gamma": 1.3955868490893377,
+      "gas_constant_j_kg_k": 287.05253652608536,
+      "molecular_weight_kg_kmol": 28.9651159353,
+      "sensible_enthalpy_j_kg": 96434.10940640609,
+      "entropy_thermal_function_j_kg_k": 280.47401732066436
+    },
+    "diffuser_exit": {
+      "total_temperature_k": 393.8070642192489,
+      "total_pressure_pa": 247650.13433878284,
+      "velocity_m_s": 190.34132963641434,
+      "static_temperature_k": 375.9008120001607,
+      "static_pressure_pa": 210190.28094251652,
+      "density_kg_m3": 1.9479507749008913,
+      "dynamic_pressure_pa": 35286.95469351283,
+      "mach": 0.4903030337790979,
+      "cp_j_kg_k": 1012.6897440998348,
+      "cv_j_kg_k": 725.6372075737495,
+      "gamma": 1.3955868490893377,
+      "gas_constant_j_kg_k": 287.05253652608536,
+      "molecular_weight_kg_kmol": 28.9651159353,
+      "sensible_enthalpy_j_kg": 96434.10940640609,
+      "entropy_thermal_function_j_kg_k": 280.47401732066436
+    }
+  },
+  "walls": {
+    "impeller": {
+      "hub": {
+        "start_z_m": 0,
+        "start_r_m": 0.024370124709192715,
+        "start_angle_deg": 0,
+        "segments": [
+          {
+            "length_m": 0.023505619729739788
+          },
+          {
+            "radius_m": 0.04474712798445089,
+            "sweep_deg": 90
+          },
+          {
+            "length_m": 0.024905226225315547
+          }
+        ]
+      },
+      "shroud": {
+        "start_z_m": 0,
+        "start_r_m": 0.04874024941838543,
+        "start_angle_deg": 0,
+        "segments": [
+          {
+            "length_m": 0.040869648597661734
+          },
+          {
+            "radius_m": 0.020377003275258175,
+            "sweep_deg": 90
+          },
+          {
+            "length_m": 0.024905226225315547
+          }
+        ]
+      }
+    },
+    "diffuser": {
+      "hub": {
+        "start_z_m": 0.06825274771419068,
+        "start_r_m": 0.09402247891895915,
+        "start_angle_deg": 90.36049593422995,
+        "segments": [
+          {
+            "length_m": 0.051713386997778506
+          }
+        ]
+      },
+      "shroud": {
+        "start_z_m": 0.061246651872919916,
+        "start_r_m": 0.09402247891895915,
+        "start_angle_deg": 89.63950406577005,
+        "segments": [
+          {
+            "length_m": 0.051713386997778506
+          }
+        ]
+      }
+    }
+  },
+  "blade_edges": {
+    "blade_count": 12,
+    "le_fraction": 0.035,
+    "te_fraction": 0.965,
+    "le_thickness_mm": 0.35,
+    "te_thickness_mm": 0.3,
+    "max_thickness_mm": 1.25,
+    "le_ellipse_ratio": 1.4,
+    "te_ellipse_ratio": 1.0,
+    "le_type": "elliptical",
+    "te_type": "circular"
+  }
+}

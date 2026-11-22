@@ -270,6 +270,20 @@ class APITests(unittest.TestCase):
             if path == "/":
                 self.assertIn(TOKEN.encode(), body)
 
+    def test_two_stage_performance_endpoint_validates_and_leaves_cases_untouched(self):
+        status, body, _ = self.request("/two-stage-performance-example.json")
+        self.assertEqual(status, 200)
+        document = json.loads(body)
+        _, existing, _ = self.request("/api/cases")
+        path = "/api/sizing/two-stage-performance"
+        status, body, _ = self.request(path, {"document": document})
+        self.assertEqual(status, 200)
+        report = json.loads(body)
+        self.assertEqual(report["performance"], document)
+        self.assertEqual(set(report["cycle_cases"]), {"equal", "75-percent"})
+        self.assertEqual(self.request(path, {"document": {}})[0], 400)
+        self.assertEqual(self.request("/api/cases")[1], existing)
+
     def test_nasa_http_default_and_legacy_input_migration(self):
         schema = json.loads(self.request("/api/schema")[1])
         self.assertEqual(schema["default"]["thermodynamics"]["model"], "nasa9_frozen")

@@ -12,13 +12,15 @@ import uuid
 from datetime import datetime, timezone
 
 MODULE_ID='gt.mechanical.shaft_joint'
-MODULE_VERSION='0.1.0'
+MODULE_VERSION='0.2.0'
+MAX_THRUST_SURFACES=24
+MAX_AXIAL_FORCE_N=1e9
 
 # key, Japanese label, displayed unit, UI multiplier, SI lower/upper/default
 LOAD=[('torque_n_m','伝達トルク','N m',1,-1e9,1e9,500.),
       ('power_w','伝達動力','kW',.001,-1e10,1e10,314159.2653589793),
       ('speed_rpm','軸回転数','rpm',1,1,300000,6000.),
-      ('axial_force_n','軸方向分離荷重','kN',.001,0,1e9,1000.),
+      ('axial_force_n','外部軸力（分離が正）','kN',.001,-MAX_AXIAL_FORCE_N,MAX_AXIAL_FORCE_N,1000.),
       ('bending_moment_n_m','曲げモーメント','N m',1,0,1e9,50.),
       ('service_factor','荷重の使用係数','—',1,1,10,1.5)]
 FACTORS=[('engaged_fraction','荷重を分担する歯の割合','—',1,.01,1,.5),
@@ -86,15 +88,61 @@ def default_input(kind='spline'):
     return result
 
 
+def _text(value,label,maximum):
+    if not isinstance(value,str) or not 1<=len(value.strip())<=maximum:
+        raise ValueError(label+'の文字数が不正です。')
+    return value.strip()
+
+
+def _thrust_number(value,low,high,label):
+    if type(value) not in (int,float) or not low <= value <= high:
+        raise ValueError(label+'を許容範囲内の有限数で指定してください。')
+    return float(value)
+
+
+def _validate_thrust(raw):
+    if not isinstance(raw,dict) or set(raw)!={'surfaces','other_axial_force_n'}:
+        raise ValueError('スラスト計算の入力項目が不正です。')
+    rows=raw['surfaces']
+    if not isinstance(rows,list) or not 1 <= len(rows) <= MAX_THRUST_SURFACES:
+        raise ValueError(f'受圧面を1〜{MAX_THRUST_SURFACES}件入力してください。')
+    surfaces=[]
+    for row in rows:
+        if not isinstance(row,dict) or set(row)!={'name','outer_diameter_m','inner_diameter_m','pressure_difference_pa'}:
+            raise ValueError('受圧面の入力項目が不正です。')
+        name=_text(row['name'],'受圧面の名称',100)
+        outer=_thrust_number(row['outer_diameter_m'],.0001,5.,name+'の外径')
+        inner=_thrust_number(row['inner_diameter_m'],0.,5.,name+'の内径')
+        if inner>=outer:
+            raise ValueError(name+'の内径は外径より小さくしてください。')
+        difference=_thrust_number(row['pressure_difference_pa'],-1e9,1e9,name+'の静圧差')
+        surfaces.append(dict(name=name,outer_diameter_m=outer,inner_diameter_m=inner,pressure_difference_pa=difference))
+    other=_thrust_number(raw['other_axial_force_n'],-MAX_AXIAL_FORCE_N,MAX_AXIAL_FORCE_N,'その他の外部軸力')
+    return dict(surfaces=surfaces,other_axial_force_n=other)
+
+
+def _thrust_result(thrust):
+    surfaces=[]
+    for row in thrust['surfaces']:
+        outer,inner=row['outer_diameter_m'],row['inner_diameter_m']
+        area=math.pi*(outer-inner)*(outer+inner)/4
+        surfaces.append({**row,'projected_area_m2':area,'axial_force_n':row['pressure_difference_pa']*area})
+    pressure=math.fsum(row['axial_force_n'] for row in surfaces)
+    other=thrust['other_axial_force_n']
+    total=math.fsum((pressure,other))
+    if abs(total)>MAX_AXIAL_FORCE_N:
+        raise ValueError('計算した外部軸力が強度評価の入力範囲を超えています。')
+    return dict(surfaces=surfaces,pressure_axial_force_n=pressure,other_axial_force_n=other,total_axial_force_n=total)
+
+
 def validate_input(raw):
     if not isinstance(raw,dict) or type(raw.get('schema_version')) is not int or raw['schema_version']!=1:
         raise ValueError('軸締結入力のschema_versionは1を指定してください。')
     fields=schema(raw.get('kind'))
-    if set(raw)!=set(fields)|{'schema_version','kind','name','context'}: raise ValueError('軸締結入力に不足または未知の項目があります。')
-    def string(value,label,maximum):
-        if not isinstance(value,str) or not 1<=len(value.strip())<=maximum: raise ValueError(label+'の文字数が不正です。')
-        return value.strip()
-    out={'schema_version':1,'kind':raw['kind'],'name':string(raw['name'],'ケース名',150)}
+    if set(raw)-{'thrust'}!=set(fields)|{'schema_version','kind','name','context'}: raise ValueError('軸締結入力に不足または未知の項目があります。')
+    out={'schema_version':1,'kind':raw['kind'],'name':_text(raw['name'],'ケース名',150)}
+    if 'thrust' in raw:
+        out['thrust']=_validate_thrust(raw['thrust'])
     for group,items in fields.items():
         special={'mode','source_note'} if group=='load' else {'basis'} if group=='material' else set()
         values=raw[group]
@@ -102,13 +150,13 @@ def validate_input(raw):
         out[group]={}
         for key,label,unit,factor,low,high,_ in items:
             x=values[key]
-            if type(x) not in (int,float) or not math.isfinite(x) or not low<=x<=high: raise ValueError(f'{label}は{low*factor:g}〜{high*factor:g} {unit}の有限数で指定してください。')
+            if type(x) not in (int,float) or not low<=x<=high: raise ValueError(f'{label}は{low*factor:g}〜{high*factor:g} {unit}の有限数で指定してください。')
             if key=='tooth_count' and (type(x) is not int): raise ValueError('歯数は整数で指定してください。')
             out[group][key]=int(x) if key=='tooth_count' else float(x)
         if group=='load':
             if values['mode'] not in ('torque','power'): raise ValueError('荷重指定はtorqueまたはpowerです。')
-            out[group].update(mode=values['mode'],source_note=string(values['source_note'],'荷重の根拠',2000))
-        if group=='material': out[group]['basis']=string(values['basis'],'許容値の根拠',2000)
+            out[group].update(mode=values['mode'],source_note=_text(values['source_note'],'荷重の根拠',2000))
+        if group=='material': out[group]['basis']=_text(values['basis'],'許容値の根拠',2000)
     ctx=raw['context']
     if not isinstance(ctx,dict) or set(ctx)!={'project_id','component_id','source_revision'}: raise ValueError('contextの形式が不正です。')
     out['context']=copy.deepcopy(ctx)
@@ -143,9 +191,10 @@ def nominal_torque(inp):
     return abs(load['torque_n_m'] if load['mode']=='torque' else load['power_w']/(load['speed_rpm']*2*math.pi/60))
 
 
-def _evaluate(inp,torque):
+def _evaluate(inp,torque,axial_force):
     g=inp['geometry']; m=inp['material']; f=inp['factors']; load=inp['load']
-    k=load['service_factor']; td=torque*k; fa=load['axial_force_n']*k; moment=load['bending_moment_n_m']*k
+    k=load['service_factor']; td=torque*k; fa=axial_force*k; moment=load['bending_moment_n_m']*k
+    opening=max(fa,0.); closing=max(-fa,0.)
     ne=g['tooth_count']*f['engaged_fraction']; angle=math.radians(g['pressure_angle_deg'])
     r=g['pitch_diameter_m']/2 if inp['kind']=='spline' else (g['outer_diameter_m']+g['inner_diameter_m'])/4
     width=g['engagement_length_m'] if inp['kind']=='spline' else (g['outer_diameter_m']-g['inner_diameter_m'])/2
@@ -157,7 +206,7 @@ def _evaluate(inp,torque):
         rows.append(dict(key=key,label=label,demand=demand,allowable=limit,unit=unit,required_safety=sf,
                          safety_factor=limit/demand if demand>0 else None,margin=1/utilization-1 if utilization and utilization>0 else None,
                          utilization=utilization,passed=passed))
-    shaft_axial=fa
+    shaft_axial=abs(fa)
     if inp['kind']=='spline':
         bearing=ft*f['face_load_factor']/(ne*width*g['engagement_height_m'])
         radial=ft*math.tan(angle)
@@ -173,13 +222,13 @@ def _evaluate(inp,torque):
         min_pre=max(0.,c['preload_n']*(1-c['scatter_fraction'])*(1-c['relaxation_fraction'])+c['thermal_change_n'])
         max_pre=max(0.,c['preload_n']*(1+c['scatter_fraction'])+c['thermal_change_n'])
         sep=ft*math.tan(angle); bending_equivalent=moment*area*ro/inertia
-        separating=sep+fa+bending_equivalent
+        separating=sep+opening+bending_equivalent
         required=c['separation_factor']*separating
         check('positive_clamp','正の残存締付力',1.,min_pre,'N',1.)
         check('clamp_reserve','残存締付力と要求締付力',required,min_pre,'N',1.)
-        peak_clamp=max_pre+bending_equivalent
+        peak_clamp=max_pre+bending_equivalent+closing
         nplus=(peak_clamp/math.sin(angle)+ft/math.cos(angle))/2
-        nminus=(min_pre-fa-bending_equivalent)/math.sin(angle)/2-ft/math.cos(angle)/2
+        nminus=(min_pre-opening-bending_equivalent)/math.sin(angle)/2-ft/math.cos(angle)/2
         bearing=nplus*f['face_load_factor']/(ne*width*g['flank_height_m'])
         axial_root=peak_clamp/ne*f['face_load_factor']
         bolt=(max_pre+c['bolt_load_fraction']*separating)/c['bolt_tensile_area_m2']
@@ -187,7 +236,7 @@ def _evaluate(inp,torque):
         shaft_axial+=max_pre
         extra.update(separating_force_torque_n=sep,separating_force_total_n=separating,
                      bending_opening_equivalent_force_n=bending_equivalent,retained_preload_min_n=min_pre,assembly_preload_max_n=max_pre,
-                     required_retained_preload_n=required,minimum_annular_pressure_pa=(min_pre-fa-sep)/area-moment*ro/inertia,
+                     required_retained_preload_n=required,minimum_annular_pressure_pa=(min_pre-opening-sep)/area-moment*ro/inertia,
                      unloaded_flank_normal_force_n=nminus,flank_lift_predicted=nminus<0,
                      contact_model_valid=min_pre>0 and min_pre>=separating,annular_area_m2=area,annular_second_moment_m4=inertia,
                      minimum_assembly_preload_n=max(0.,(required-c['thermal_change_n'])/((1-c['scatter_fraction'])*(1-c['relaxation_fraction']))))
@@ -210,23 +259,28 @@ def _evaluate(inp,torque):
     return dict(status='within_preliminary_limits' if all(x['passed'] for x in rows) else 'exceeds_preliminary_limits',
                 checks=rows,governing_check=worst['key'],maximum_utilization=worst['utilization'],
                 nominal_torque_n_m=torque,design_torque_n_m=td,tangential_force_n=ft,effective_tooth_count=ne,
+                nominal_axial_force_n=axial_force,design_axial_force_n=fa,design_opening_force_n=opening,design_closing_force_n=closing,
                 tooth_peak_tangential_force_n=tooth,mean_load_radius_m=r,effective_face_width_m=width,roots=roots,
                 shaft_normal_stress_pa=normal,shaft_shear_stress_pa=shear_s,**extra)
 
 
 def analyze(raw):
-    inp=validate_input(raw); torque=nominal_torque(inp); r=_evaluate(inp,torque)
-    baseline=_evaluate(inp,0.)
+    inp=validate_input(raw); torque=nominal_torque(inp)
+    thrust=_thrust_result(inp['thrust']) if 'thrust' in inp else None
+    axial_force=thrust['total_axial_force_n'] if thrust is not None else inp['load']['axial_force_n']
+    r=_evaluate(inp,torque,axial_force)
+    r['thrust_calculation']=thrust
+    baseline=_evaluate(inp,0.,axial_force)
     if baseline['status']!='within_preliminary_limits':
         capacity=0.; lower=None; reason='zero_torque_already_exceeds_limits'
     else:
         lo,hi=0.,max(torque,1.)
-        while hi<1e12 and _evaluate(inp,hi)['status']=='within_preliminary_limits': lo=hi; hi=min(hi*2,1e12)
-        if _evaluate(inp,hi)['status']=='within_preliminary_limits': capacity=None; lower=hi; reason='search_upper_bound_reached'
+        while hi<1e12 and _evaluate(inp,hi,axial_force)['status']=='within_preliminary_limits': lo=hi; hi=min(hi*2,1e12)
+        if _evaluate(inp,hi,axial_force)['status']=='within_preliminary_limits': capacity=None; lower=hi; reason='search_upper_bound_reached'
         else:
             for _ in range(55):
                 mid=(lo+hi)/2
-                if _evaluate(inp,mid)['status']=='within_preliminary_limits': lo=mid
+                if _evaluate(inp,mid,axial_force)['status']=='within_preliminary_limits': lo=mid
                 else: hi=mid
             capacity=lo; lower=None; reason='fixed_geometry_and_other_loads'
     r.update(allowable_nominal_torque_n_m=capacity,capacity_lower_bound_n_m=lower,capacity_basis=reason,
@@ -239,6 +293,10 @@ def analyze(raw):
     if inp['kind']=='spline':
         r['minimum_engagement_length_m']=inp['geometry']['engagement_length_m']*max(c['utilization'] for c in r['checks'] if c['key']!='shaft_equivalent')
         r['shaft_check_passed']=next(c['passed'] for c in r['checks'] if c['key']=='shaft_equivalent')
+    if thrust is not None:
+        r['qualifications'].append('外部スラストは指定した静圧差×投影面積とその他の軸力の合計です。締結部に伝わる面と荷重を入力してください。')
+    if inp['kind']=='curvic' and axial_force<0.:
+        r['qualifications'].append('圧縮側の軸力は歯面・歯元・軸断面の応力評価に加えます。締付余裕の増加とボルト荷重の減少は見込みません。')
     if inp['kind']=='curvic' and not r['contact_model_valid']:
         r['qualifications'].append('離間を予測しています。歯部応力は完全接触を仮定した参考値で、接触状態を満たすまで設計成立として扱えません。')
     return r
@@ -253,7 +311,7 @@ def run_case(raw):
 
 def read_input_file(document):
     if isinstance(document,dict) and document.get('format')=='gas-turbine-shaft-joint-case':
-        if document.get('module_id')!=MODULE_ID or document.get('module_version')!=MODULE_VERSION or type(document.get('schema_version')) is not int or document['schema_version']!=1:
+        if document.get('module_id')!=MODULE_ID or document.get('module_version') not in ('0.1.0',MODULE_VERSION) or type(document.get('schema_version')) is not int or document['schema_version']!=1:
             raise ValueError('未対応の軸締結ケースです。')
         document=document.get('input')
     return validate_input(document)

@@ -1,0 +1,65 @@
+{
+  "network": {
+    "schema_version": 1,
+    "name": "定格の静止系冷却（仮想）",
+    "gas": {
+      "R": 287.05,
+      "gamma": 1.4
+    },
+    "nodes": [
+      {
+        "id": "bleed",
+        "kind": "boundary",
+        "name": "圧縮機抽気",
+        "pressure_pa": 320000,
+        "temperature_k": 442
+      },
+      {
+        "id": "plenum",
+        "kind": "junction",
+        "name": "冷却供給室",
+        "pressure_pa": 190000,
+        "temperature_k": 443
+      },
+      {
+        "id": "gaspath",
+        "kind": "boundary",
+        "name": "タービン側",
+        "pressure_pa": 120000,
+        "temperature_k": 900
+      }
+    ],
+    "edges": [
+      {
+        "id": "feed",
+        "name": "供給計量孔",
+        "from": "bleed",
+        "to": "plenum",
+        "kind": "orifice",
+        "area_m2": 0.000025,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "inject",
+        "name": "出口冷却気戻し",
+        "from": "plenum",
+        "to": "gaspath",
+        "kind": "orifice",
+        "area_m2": 0.00005,
+        "cd": 0.72,
+        "source": "仮想値"
+      }
+    ]
+  },
+  "source_stage": 2,
+  "supply_node": "bleed",
+  "turbine_case": "3段均等",
+  "injections": [
+    {
+      "boundary_node": "gaspath",
+      "station": "TB-03-ROT-TE",
+      "edge": "inject"
+    }
+  ]
+}

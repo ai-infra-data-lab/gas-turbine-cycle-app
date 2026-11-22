@@ -1,0 +1,21 @@
+{
+  "allocations": {
+    "3段均等": [
+      1,
+      1,
+      1
+    ],
+    "3段前段寄り": [
+      1.2,
+      1,
+      0.8
+    ]
+  },
+  "hub_radius": 0.047,
+  "tip_radius": 0.073,
+  "turbine_exit_tip_radius": 0.091,
+  "exhaust_diffuser": {
+    "pressure_retention": 0.985,
+    "area_ratio": 1.6
+  }
+}
