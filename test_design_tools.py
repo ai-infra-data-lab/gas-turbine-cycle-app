@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
+from subprocess import CompletedProcess
 import unittest
+from unittest.mock import patch
 
 from engine import run_case
 from two_stage_design import sample_cycle_input
@@ -17,6 +19,21 @@ class DesignToolChecks(unittest.TestCase):
 
     def setup_for(self, name):
         return json.loads((self.examples / f"{name}.json").read_text(encoding="utf-8"))
+
+    def test_isolated_result_ignores_solver_stdout_diagnostics(self):
+        from gas_turbine_cycle_app import design_tools
+        expected = {"format": "rotor-cycle-handoff", "summary": "計算結果"}
+
+        def finish(command, **_kwargs):
+            output = Path(command[command.index("--output") + 1])
+            output.write_text(json.dumps(expected, ensure_ascii=False), encoding="utf-8")
+            return CompletedProcess(command, 0, stdout="Native dependency diagnostic", stderr="")
+
+        with (
+            patch.object(design_tools, "python_for", return_value="python"),
+            patch.object(design_tools.subprocess, "run", side_effect=finish),
+        ):
+            self.assertEqual(design_tools.run_isolated("rotor", {"settings": {}}), expected)
 
     def test_stage_thrust_and_cut_loads(self):
         from gas_turbine_cycle_app.rotor_thrust import evaluate

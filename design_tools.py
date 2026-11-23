@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 
 if __package__:
     from .design_exchange import verified_cycle
@@ -65,20 +66,28 @@ def python_for(tool):
 def run_isolated(tool, request, *, timeout=100):
     if not isinstance(tool, str) or tool not in TARGETS:
         raise ValueError("連携機能を選択してください。")
-    try:
-        completed = subprocess.run(
-            [python_for(tool), "-m", "gas_turbine_cycle_app.design_tools", tool],
-            cwd=ROOT, input=json.dumps(request, ensure_ascii=False, allow_nan=False), encoding="utf-8",
-            capture_output=True, timeout=timeout, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-            env={**os.environ, "PYTHONUTF8":"1", "OPENBLAS_NUM_THREADS":"1", "OMP_NUM_THREADS":"1"},
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise ValueError("連携計算が制限時間に達しました。入力規模を確認してください。") from exc
-    except OSError as exc:
-        raise ValueError("連携先のPython環境を起動できません。") from exc
-    if completed.returncode:
-        raise ValueError(completed.stderr.strip() or "連携計算が終了しました。")
-    return json.loads(completed.stdout)
+    with TemporaryDirectory(prefix="gt-design-handoff-") as working_dir:
+        result_path = Path(working_dir) / "result.json"
+        try:
+            completed = subprocess.run(
+                [python_for(tool), "-m", "gas_turbine_cycle_app.design_tools", tool,
+                 "--output", str(result_path)],
+                cwd=ROOT, input=json.dumps(request, ensure_ascii=False, allow_nan=False),
+                encoding="utf-8", errors="replace", capture_output=True, timeout=timeout,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+                env={**os.environ, "PYTHONUTF8":"1", "OPENBLAS_NUM_THREADS":"1", "OMP_NUM_THREADS":"1"},
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise ValueError("連携計算が制限時間に達しました。入力規模を確認してください。") from exc
+        except OSError as exc:
+            raise ValueError("連携先のPython環境を起動できません。") from exc
+        if completed.returncode:
+            raise ValueError(completed.stderr.strip() or "連携計算が終了しました。")
+        # Native dependencies can write diagnostics directly to stdout.
+        try:
+            return json.loads(result_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("連携先の結果JSONを読み込めません。") from exc
 
 
 def main(argv=None):
