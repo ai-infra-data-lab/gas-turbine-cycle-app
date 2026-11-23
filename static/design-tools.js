@@ -31,6 +31,7 @@ function showTools() {
     $("cycle-label").hidden = $("demo-label").hidden = tool === "oil";
     $("reference-fields").hidden = !["cooling","rotor"].includes(tool);
     $("load-rotating-sample").hidden = tool !== "cooling";
+    $("load-coupled-sample").hidden = tool !== "cooling";
     $("reference-title").textContent = tool === "cooling" ? "軸流タービン連携の結果JSON" : "給油の比較結果JSON（任意）";
     $("reference-file").value = "";
     $("oil-condition-label").hidden = true;
@@ -45,12 +46,45 @@ async function readFile(input) {
     return JSON.parse(await file.text());
 }
 
+function renderSensitivity(cases) {
+    const parameters = {
+        outer_pressure_pa: {name:"外周静圧", factor:0.001, unit:" kPa"},
+        swirl_ratio: {name:"旋回比", factor:1, unit:""},
+        inner_radius_m: {name:"受圧内半径", factor:1000, unit:" mm"},
+    };
+    const joints = {spline:"スプライン", curvic:"カービック"};
+    const body = $("sensitivity-rows");
+    body.replaceChildren();
+    for (const variant of cases) {
+        for (const point of [variant.baseline, ...variant.points]) {
+            let label = "基準";
+            if (point.parameter) {
+                const parameter = parameters[point.parameter];
+                const side = {front:"前面", back:"背面"}[point.side] || "";
+                const delta = (point.offset > 0 ? "+" : "") + number(point.offset * parameter.factor);
+                label = `第${point.stage}段・領域${point.cavity} ${side}${parameter.name} ${delta}${parameter.unit}`;
+            }
+            const row = body.insertRow();
+            const jointLoads = point.joints.map(joint =>
+                `${joints[joint.kind]}（${number(joint.x_m * 1000)} mm） ${number(joint.tension_n)}`).join(" / ");
+            const values = [number(variant.stage1_share * 100) + "%", label,
+                ...point.stages.map(stage => number(stage.force_n)),
+                number(point.bearing_reaction_n), number(point.bearing_delta_n ?? 0), jointLoads || "—"];
+            for (const value of values) row.insertCell().textContent = value;
+        }
+    }
+}
+
 function outputTable(tool, data) {
     const rows = [];
     const add = (target,label,value,unit="",digits=3) =>
         rows.push([target,label,typeof value === "string" ? value : number(value,digits)+(value == null ? "" : unit)]);
     const addFile = (label, filename, content) => files.push({label,filename,content});
     addFile("連携結果一式",tool+"-report.json",data);
+    const sensitivity = tool === "thrust-sensitivity";
+    $("summary-table").hidden = sensitivity;
+    $("sensitivity-table").hidden = !sensitivity;
+    if (sensitivity) renderSensitivity(data.cases);
     if (tool === "thrust") {
         for (const item of data.stages) {
             add(item.name,"入口静圧",item.inlet_static_pa/1000," kPa");
@@ -63,15 +97,42 @@ function outputTable(tool, data) {
             addFile("継手 "+(i+1)+"の強度ケース","shaft-joint-"+(i+1)+".json",item.strength_case);
         });
     }
+    if (tool === "thrust-seal") {
+        Object.entries(data.cases).forEach(([name, item], i) => {
+            for (const side of item.cavity_inputs) {
+                const label = side.side === "front" ? "前面" : "背面";
+                add(name,`第${side.stage}段 ${label}領域${side.region}の外周絶対静圧`,side.outer_pressure_pa/1000," kPa");
+            }
+            for (const stage of item.thrust.stages) add(name,stage.name+"の軸力",stage.force_n," N");
+            add(name,"スラスト軸受反力",item.thrust.bearing_reaction.force_n," N");
+            item.thrust.joints.forEach((joint,j) => {
+                add(name,`継手 ${j+1}・軸力（引張正）`,joint.tension_n," N");
+                addFile(`${name}・継手 ${j+1}`,`shaft-joint-${i+1}-${j+1}.json`,joint.strength_case);
+            });
+            addFile(name+"の漏れ回路",`cavity-network-${i+1}.json`,item.network_result.model);
+        });
+    }
     if (tool === "combustor") {
         const c = data.per_can;
         add("1缶","燃料流量",c.fuel_kg_s," kg/s",6);
         add("1缶","出口全温",c.outlet_total_temperature_k," K");
         add("1缶","出口絶対全圧",c.outlet_total_pressure_pa/1000," kPa");
         add("1缶","全圧損失",c.total_pressure_loss_pa/1000," kPa");
+        add("1缶","全圧損失率",c.total_pressure_loss_fraction*100," %",4);
+        add("1缶","計算基準点のマッハ数",c.inlet_mach,"",5);
         for (const [key,value] of Object.entries(c.zones_kg_s)) {
             const names = {primary:"一次空気",secondary:"二次空気",dilution:"希釈空気",liner_cooling:"ライナ冷却空気"};
-            add("1缶",names[key],value," kg/s",6);
+            add("1缶",names[key],number(value,6)+" kg/s · "+number(c.air_split[key]*100,3)+" %");
+        }
+        const profile = data.thermal?.outlet_profile;
+        if (profile) {
+            profile.sectors.forEach(row => add(row.id,"出口全温",row.total_temperature_k," K"));
+            add("出口分布","パターンファクター",profile.pattern_factor,"",5);
+        }
+        for (const liner of data.thermal?.liner_segments || []) {
+            add(liner.id,"ライナ高温側温度",liner.hot_wall_temperature_k," K");
+            add(liner.id,"ライナ冷却側温度",liner.cold_wall_temperature_k," K");
+            add(liner.id,"材料温度余裕",liner.temperature_margin_k," K");
         }
     }
     if (tool === "turbine") {
@@ -82,6 +143,11 @@ function outputTable(tool, data) {
                 add(name,"第"+stage.stage+"段 動翼出口軸流速度",stage.outlet.axial_velocity," m/s");
             }
             add(name,"排気ディフューザーの静圧変化",item.diffuser_static_recovery_pa/1000," kPa");
+            if (item.exhaust_diffuser) {
+                add(name,"排気ディフューザー入口面積",item.exhaust_diffuser.inlet_area_m2," m²",7);
+                add(name,"排気ディフューザー出口面積",item.exhaust_diffuser.outlet_area_m2," m²",7);
+                add(name,"排気ディフューザーの全圧損失",item.exhaust_diffuser.total_pressure_loss_pa/1000," kPa");
+            }
             addFile(name+"の軸流タービン設計","axial-turbine-"+(i+1)+".json",
                 {format:"axial-turbine-designer",bundle_version:6,design:item.design});
         });
@@ -92,7 +158,23 @@ function outputTable(tool, data) {
             add(item.station,"冷却全温",item.coolant_total_temperature_k," K");
         }
         if (data.frame_transfer) add("回転流路","軸仕事率",data.network_result.summary.shaft_work_w," W");
-        add("Cycle Studio","運転点への反映",data.cycle_case ? "1回反映済み" : data.cycle_feedback);
+        const feedback = {design_point_once:"1回反映済み", coupled_design_point:"反復収束",
+                          coupled_not_converged:"反復連携が未収束"}[data.cycle_feedback] || data.cycle_feedback;
+        add("Cycle Studio","運転点への反映",feedback);
+        if (data.coupling?.iterations.length) {
+            const last = data.coupling.iterations.at(-1);
+            add("Cycle Studio","反復回数",data.coupling.iterations.length," 回");
+            add("Cycle Studio","境界静圧・供給全圧の最大差",last.max_pressure_difference_pa," Pa",5);
+            add("Cycle Studio","境界全温の最大差",last.max_temperature_difference_k," K",6);
+            add("Cycle Studio","最大流量変化",last.max_flow_change_kg_s," kg/s",10);
+            data.coupling.iterations.forEach((step,index) => {
+                const boundary = step.boundaries?.reduce((worst,row) =>
+                    Math.abs(row.pressure_difference_pa) > Math.abs(worst.pressure_difference_pa) ? row : worst);
+                add(`反復 ${index+1}`,"最大境界差",
+                    `${number(step.max_pressure_difference_pa,5)} Pa · ${number(step.max_temperature_difference_k,6)} K · ` +
+                    `${number(step.max_flow_change_kg_s,10)} kg/s${boundary ? " · 最大圧差の位置 " + boundary.station : ""}`);
+            });
+        }
         addFile("二次空気ネットワークの入力","secondary-air-network.json",data.network_result.model);
     }
     if (tool === "oil") {
@@ -143,6 +225,7 @@ async function loadSample(variant="") {
 }
 $("load-sample").addEventListener("click",()=>loadSample());
 $("load-rotating-sample").addEventListener("click",()=>loadSample("&variant=rotating"));
+$("load-coupled-sample").addEventListener("click",()=>loadSample("&variant=coupled"));
 $("reference-file").addEventListener("change", async ()=>{
     const tool = $("tool").value;
     const file = $("reference-file").files[0];
@@ -202,4 +285,8 @@ $("download").addEventListener("click",()=>{
     link.click();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
+const requestedTool = new URLSearchParams(window.location.search).get("tool");
+if (Array.from($("tool").options).some(option => option.value === requestedTool)) {
+    $("tool").value = requestedTool;
+}
 showTools();

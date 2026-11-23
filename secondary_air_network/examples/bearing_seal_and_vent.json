@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "name": "軸受室シール空気とベント（仮想・静止系）",
+  "gas": {
+    "R": 287.05,
+    "gamma": 1.4
+  },
+  "nodes": [
+    {
+      "id": "air",
+      "name": "シール空気供給",
+      "kind": "boundary",
+      "pressure_pa": 160000,
+      "temperature_k": 330
+    },
+    {
+      "id": "chamber",
+      "name": "軸受室の気相",
+      "kind": "junction",
+      "pressure_pa": 125000,
+      "temperature_k": 330
+    },
+    {
+      "id": "vent",
+      "name": "ベント排出境界",
+      "kind": "boundary",
+      "pressure_pa": 101325,
+      "temperature_k": 300
+    }
+  ],
+  "edges": [
+    {
+      "id": "shaft-seal",
+      "name": "軸シールの4歯ラビリンス",
+      "from": "air",
+      "to": "chamber",
+      "kind": "labyrinth",
+      "seal_diameter_m": 0.12,
+      "clearance_m": 0.00015,
+      "tooth_count": 4,
+      "cd": 0.7,
+      "source": "架空のシール寸法とCd"
+    },
+    {
+      "id": "vent-line",
+      "name": "ベントの等価絞り",
+      "from": "chamber",
+      "to": "vent",
+      "kind": "orifice",
+      "area_m2": 0.00006,
+      "cd": 0.72,
+      "source": "架空の等価面積とCd"
+    }
+  ]
+}

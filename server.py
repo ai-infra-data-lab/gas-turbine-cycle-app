@@ -89,9 +89,16 @@ class Handler(BaseHTTPRequestHandler):
                 tool = query.get("tool", [""])[0]
                 if tool not in DESIGN_TOOLS:
                     return self.json({"error":"連携機能を選択してください。"}, 400)
-                if tool == "cooling" and query.get("variant") == ["rotating"]:
-                    tool = "cooling-rotating"
-                return self.send(200, (ROOT/"examples/roadmap"/f"{tool}.json").read_bytes())
+                variant = query.get("variant", [""])[0]
+                if tool == "cooling" and variant in ("rotating", "coupled"):
+                    tool = f"cooling-{variant}"
+                examples = ROOT / "examples/roadmap"
+                example = (examples / f"{tool}.json").read_bytes()
+                if tool in ("thrust-sensitivity", "thrust-seal"):
+                    settings = json.loads(example)
+                    settings["thrust"] = json.loads((examples / "thrust.json").read_bytes())
+                    return self.json(settings)
+                return self.send(200, example)
             if path.path == "/api/sizing/two-stage-fields":
                 return self.json({"sizing":compressor_sizing.FIELDS, "edges":two_stage_design.EDGE_FIELDS,
                                   "edge_types":two_stage_design.EDGE_TYPES, "vaned":vaned_two_stage.schema()})
@@ -221,6 +228,7 @@ def main():
     parser.add_argument("--port", type=int, default=8780)
     parser.add_argument("--data", type=Path, default=ROOT / "data/cases.sqlite3")
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--open-tool", choices=("combustor",))
     args = parser.parse_args()
     try:
         server = make_server(args.data, args.port)
@@ -229,7 +237,7 @@ def main():
     url = f"http://127.0.0.1:{server.server_port}"
     print(f"Cycle Studio: {url}\n保存先: {args.data.resolve()}\n終了: Ctrl+C", flush=True)
     if not args.no_browser:
-        webbrowser.open(url)
+        webbrowser.open(f"{url}/design-tools?tool={args.open_tool}" if args.open_tool else url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

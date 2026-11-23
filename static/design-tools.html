@@ -11,6 +11,8 @@
 <div class="grid">
 <label>連携機能<select id="tool">
 <option value="thrust">インペラーのスラスト・軸締結</option>
+<option value="thrust-sensitivity">遠心2段のスラスト力感度分析</option>
+<option value="thrust-seal">シール漏れ・キャビティ圧と軸スラスト</option>
 <option value="combustor">単管燃焼器</option>
 <option value="turbine">軸流タービン・排気ディフューザー</option>
 <option value="cooling">二次空気・サイクルへの反映</option>
@@ -27,10 +29,14 @@
 <label>連携設定JSON<textarea id="settings" rows="13" required spellcheck="false"></textarea></label>
 <div class="actions"><button type="button" id="load-sample">仮想設定を読み込む</button>
 <button type="button" id="load-rotating-sample" hidden>回転流路とシールの仮想設定</button>
+<button type="button" id="load-coupled-sample" hidden>3段冷却・段間パージの仮想設定</button>
 <button type="submit" class="primary">計算する</button></div>
 </form><p id="status" role="status"></p></section>
 <section id="results" hidden><h2>計算結果</h2><p id="result-note"></p>
-<div class="table-scroll"><table><thead><tr><th>対象</th><th>項目</th><th>値</th></tr></thead><tbody id="summary"></tbody></table></div>
+<div class="table-scroll" id="summary-table"><table><thead><tr><th>対象</th><th>項目</th><th>値</th></tr></thead><tbody id="summary"></tbody></table></div>
+<div class="table-scroll" id="sensitivity-table" hidden><table>
+<thead><tr><th scope="col">第1段配分</th><th scope="col">変更条件</th><th scope="col">第1段軸力 [N]</th><th scope="col">第2段軸力 [N]</th><th scope="col">軸受反力 [N]</th><th scope="col">基準との差 [N]</th><th scope="col">継手軸力 [N]（引張正）</th></tr></thead>
+<tbody id="sensitivity-rows"></tbody></table></div>
 <label>出力するファイル<select id="output-file"></select></label>
 <button type="button" id="download">JSONを書出し</button></section>
 </main></body></html>

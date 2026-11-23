@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "name": "架空サンプル：4歯ラビリンスと隙間感度",
+  "gas": {
+    "R": 287.05,
+    "gamma": 1.4
+  },
+  "nodes": [
+    {
+      "id": "bleed",
+      "name": "圧縮機抽気（仮定）",
+      "kind": "boundary",
+      "pressure_pa": 600000,
+      "temperature_k": 550
+    },
+    {
+      "id": "plenum",
+      "name": "分配室",
+      "kind": "junction",
+      "pressure_pa": 400000,
+      "temperature_k": 550
+    },
+    {
+      "id": "cooling",
+      "name": "冷却供給室",
+      "kind": "junction",
+      "pressure_pa": 300000,
+      "temperature_k": 580
+    },
+    {
+      "id": "gaspath",
+      "name": "主流排出先（仮定）",
+      "kind": "boundary",
+      "pressure_pa": 180000,
+      "temperature_k": 1000
+    },
+    {
+      "id": "sealout",
+      "name": "シール排出先（仮定）",
+      "kind": "boundary",
+      "pressure_pa": 120000,
+      "temperature_k": 700
+    }
+  ],
+  "edges": [
+    {
+      "id": "feed",
+      "name": "抽気供給配管",
+      "from": "bleed",
+      "to": "plenum",
+      "kind": "pipe",
+      "area_m2": 0.0003141592654,
+      "diameter_m": 0.02,
+      "length_m": 0.8,
+      "roughness_m": 1e-05,
+      "k": 0.5,
+      "htc_w_m2k": 30,
+      "wall_temperature_k": 650,
+      "source": "架空の操作説明値。実機未検証。"
+    },
+    {
+      "id": "meter",
+      "name": "冷却計量孔",
+      "from": "plenum",
+      "to": "cooling",
+      "kind": "orifice",
+      "area_m2": 0.00012,
+      "cd": 0.72,
+      "source": "仮定Cd。実験による校正が必要。"
+    },
+    {
+      "id": "cool",
+      "name": "等価冷却孔群",
+      "from": "cooling",
+      "to": "gaspath",
+      "kind": "orifice",
+      "area_m2": 0.00018,
+      "cd": 0.7,
+      "source": "仮定の合計面積・Cd。翼温評価は含まない。"
+    },
+    {
+      "id": "seal",
+      "name": "4歯ラビリンス（完全散逸）",
+      "from": "plenum",
+      "to": "sealout",
+      "kind": "labyrinth",
+      "area_m2": 3.5e-05,
+      "cd": 0.7,
+      "source": "架空値。各歯のCd=0.7を仮定。歯間の軸方向運動エネルギーは完全散逸。実機未校正。",
+      "seal_diameter_m": 0.12,
+      "clearance_m": 0.00015,
+      "tooth_count": 4,
+      "cd_reverse": 0.7
+    }
+  ],
+  "vortex_study": {
+    "kind": "forced",
+    "rpm": 30000,
+    "swirl_ratio": 0.5,
+    "reference_radius_m": 0.08,
+    "start_radius_m": 0.08,
+    "end_radius_m": 0.18,
+    "reference_pressure_pa": 300000,
+    "static_temperature_k": 600,
+    "points": 21
+  }
+}

@@ -12,7 +12,7 @@ python server.py
 
 Python 3.10以上が必要です。追加Pythonパッケージのインストールは不要です。公開版に実使用・試験用の保存DBは含みません。
 
-対応する[設計情報管理アプリ](https://github.com/ai-infra-data-lab/gas-turbine-design-manager)は別リポジトリです。別々に動作し、設計成果物JSONで受け渡します。
+対応する[設計情報管理アプリ](https://github.com/ai-infra-data-lab/gas-turbine-design-manager)は別リポジトリです。Cycle Studioの計算結果はDesign Deskの「設計成果物」に登録できます。GitHub版には単管燃焼器と二次空気ネットワークが付属します。軸流タービン、給油、ロータを含めた準備手順は[共通マニュアル](SUITE_MANUAL.md)を参照してください。
 
 ## 起動
 
@@ -119,4 +119,4 @@ python cli.py --input examples/nasa_target_100kw_input.json --output result-100k
 
 「設計アプリ連携」から、段別軸力と軸締結、単管燃焼器、軸流タービン、二次空気、給油、RotorLabの設計点計算とJSON受け渡しを実行できます。[操作手順と入力の定義](DESIGN_TOOLS.md)
 
-単管燃焼器の計算モジュールを同梱しています。軸流タービン・油配管・RotorLabなどの連携には、操作手順に従って対応するアプリを同じ親フォルダーに配置してください。
+全アプリのWindows起動、定格レビュー、計測方法は[設計アプリ共通マニュアル](SUITE_MANUAL.md)を参照してください。

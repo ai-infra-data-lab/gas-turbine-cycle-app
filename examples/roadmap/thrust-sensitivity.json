@@ -1,0 +1,15 @@
+{
+  "stage1_shares": [0.5, 0.75],
+  "sweeps": [
+    {"stage": 1, "cavity": 1, "side": "front", "parameter": "outer_pressure_pa", "offsets": [-10000, 10000]},
+    {"stage": 1, "cavity": 1, "side": "back", "parameter": "outer_pressure_pa", "offsets": [-10000, 10000]},
+    {"stage": 1, "cavity": 1, "side": "front", "parameter": "swirl_ratio", "offsets": [-0.1, 0.1]},
+    {"stage": 1, "cavity": 1, "side": "back", "parameter": "swirl_ratio", "offsets": [-0.1, 0.1]},
+    {"stage": 1, "cavity": 1, "parameter": "inner_radius_m", "offsets": [-0.002, 0.002]},
+    {"stage": 2, "cavity": 1, "side": "front", "parameter": "outer_pressure_pa", "offsets": [-10000, 10000]},
+    {"stage": 2, "cavity": 1, "side": "back", "parameter": "outer_pressure_pa", "offsets": [-10000, 10000]},
+    {"stage": 2, "cavity": 1, "side": "front", "parameter": "swirl_ratio", "offsets": [-0.1, 0.1]},
+    {"stage": 2, "cavity": 1, "side": "back", "parameter": "swirl_ratio", "offsets": [-0.1, 0.1]},
+    {"stage": 2, "cavity": 1, "parameter": "inner_radius_m", "offsets": [-0.002, 0.002]}
+  ]
+}

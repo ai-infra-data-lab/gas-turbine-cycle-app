@@ -14,9 +14,12 @@ if __package__:
     from .two_stage_design import sample_cycle_input
 
 
-ROOT = Path(__file__).resolve().parent.parent
+PACKAGE = Path(__file__).resolve().parent
+ROOT = PACKAGE.parent
 TARGETS = {
     "thrust": (None, "gas_turbine_cycle_app.rotor_thrust"),
+    "thrust-sensitivity": (None, "gas_turbine_cycle_app.thrust_sensitivity"),
+    "thrust-seal": ("secondary_air_network", "thrust_handoff"),
     "turbine": ("axial_turbine_designer", "cycle_handoff"),
     "cooling": ("secondary_air_network", "cycle_handoff"),
     "combustor": (None, "single_can_combustor"),
@@ -25,12 +28,28 @@ TARGETS = {
 }
 
 
+def app_directory(app):
+    sibling = ROOT / app
+    if app in ("secondary_air_network", "single_can_combustor") and not sibling.is_dir():
+        return PACKAGE / app
+    return sibling
+
+
+def combustor_module():
+    if app_directory("single_can_combustor").parent == PACKAGE:
+        return "gas_turbine_cycle_app.single_can_combustor"
+    return "single_can_combustor"
+
+
 def calculate(tool, request):
     app, module = TARGETS[tool]
     if app is not None:
-        sys.path.insert(0, str(ROOT / app))
-    if tool == "combustor" and not (ROOT / "single_can_combustor" / "__init__.py").is_file():
-        module = "gas_turbine_cycle_app.single_can_combustor"
+        directory = app_directory(app)
+        if not directory.is_dir():
+            raise ValueError(f"連携先 {app} の配置を確認してください。共通マニュアルに取得手順があります。")
+        sys.path.insert(0, str(directory))
+    if tool == "combustor":
+        module = combustor_module()
     evaluate = importlib.import_module(module).evaluate
     setup = request["settings"]
     if not isinstance(setup, dict):
@@ -41,7 +60,7 @@ def calculate(tool, request):
         document = run_case(sample_cycle_input())
     else:
         document = request["cycle"]
-    if tool in ("thrust", "combustor"):
+    if tool in ("thrust", "thrust-sensitivity", "combustor"):
         return evaluate(document, setup)
     case, source = verified_cycle(document)
     case["run_id"] = source["run_id"]
@@ -57,8 +76,8 @@ def python_for(tool):
         return override
     candidates = (
         Path("C:/CodexAppEnvs") / app / "Scripts" / "python.exe",
-        ROOT / app / ".venv" / "Scripts" / "python.exe",
-        ROOT / app / ".venv" / "bin" / "python",
+        app_directory(app) / ".venv" / "Scripts" / "python.exe",
+        app_directory(app) / ".venv" / "bin" / "python",
     )
     return str(next((candidate for candidate in candidates if candidate.is_file()), sys.executable))
 

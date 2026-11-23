@@ -1,0 +1,41 @@
+/* Check the actual CSV formatter independently of browser downloads. */
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const source = fs.readFileSync(path.join(__dirname, 'static/app.js'), 'utf8');
+const start = source.indexOf('function exportCSV() {');
+const end = source.indexOf('const sweepFields=', start);
+assert(start > 0 && end > start);
+const formatter = source.slice(start, end);
+const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'artifacts/sample_result.json'), 'utf8'));
+function exportFixture(result) {
+  const context = vm.createContext({result, captured:null, download(name,content,type) {context.captured={name,content,type};}});
+  vm.runInContext(formatter+'\nexportCSV();', context);
+  return context.captured;
+}
+const normal = exportFixture(fixture);
+assert.equal(normal.name, 'secondary-air-results.csv');
+assert.equal(normal.content.charCodeAt(0), 0xFEFF);
+assert.equal(normal.content.split('\r\n').length, 1+fixture.nodes.length+fixture.edges.length);
+assert(normal.content.includes('"mass_flow_kg_s"'));
+assert(normal.content.includes('"edge","feed"'));
+const special = structuredClone(fixture);
+special.nodes[0].name='=SUM(1,2)';
+special.edges[0].name='a,"quote"';
+special.edges[0].mass_flow_kg_s=-0.125;
+const escaped=exportFixture(special).content;
+assert(escaped.includes('"\'=SUM(1,2)"'));
+assert(escaped.includes('"a,""quote"""'));
+assert(escaped.includes('"-0.125"'));
+assert(!escaped.includes('"\'-0.125"'));
+assert.equal(exportFixture(null), null);
+const rotating=structuredClone(fixture);
+rotating.nodes[0].frame='rotating';rotating.nodes[0].rpm=30000;rotating.nodes[0].absolute_total_temperature_k=581.43577;
+rotating.edges[0].reference_frame='rotating';rotating.edges[0].shaft_work_w=17809.583;
+const rotatingCSV=exportFixture(rotating).content;
+assert(rotatingCSV.includes('"absolute_total_temperature_k"'));
+assert(rotatingCSV.includes('"shaft_work_w"'));
+assert(rotatingCSV.includes('"rotating","30000"'));
+assert(rotatingCSV.includes('"17809.583"'));
+console.log('CSV checks passed: BOM, headers, row count, numeric sign, quoting, formula protection, no stale export.');

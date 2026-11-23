@@ -2,12 +2,12 @@
 from copy import deepcopy
 import math
 
-from gas_turbine_cycle_app.design_exchange import cycle_air, number, verified_cycle
-from gas_turbine_cycle_app.engine import run_case
-from gas_turbine_cycle_app.thermo import ConstantGas, products, solve_temperature, stoichiometric_fuel_air_ratio
-
-
 def evaluate(document, setup):
+    from gas_turbine_cycle_app.design_exchange import cycle_air, number, verified_cycle
+    from gas_turbine_cycle_app.engine import run_case
+    from gas_turbine_cycle_app.thermo import ConstantGas, products, solve_temperature, stoichiometric_fuel_air_ratio
+    from .thermal import evaluate_thermal
+
     baseline, source = verified_cycle(document)
     inputs = deepcopy(baseline["input"])
     if inputs["cooling"]["enabled"]:
@@ -74,20 +74,28 @@ def evaluate(document, setup):
     zeta = number(setup["loss_coefficient"], "入口動圧基準の全圧損失係数", 0.)
     density = pin / (gas_in.r * tin)
     velocity = airflow / (density * area)
-    if velocity / math.sqrt(gas_in.gamma(tin) * gas_in.r * tin) > .3:
+    inlet_mach = velocity / math.sqrt(gas_in.gamma(tin) * gas_in.r * tin)
+    if inlet_mach > .3:
         raise ValueError("入口の密度一定近似はMach 0.3以下で使用してください。")
-    pressure_loss = zeta * density * velocity**2 / 2
+    dynamic_pressure = density * velocity**2 / 2
+    pressure_loss = zeta * dynamic_pressure
     fuel = ratio * airflow
+    zone_flows = {role: airflow*share for role, share in shares.items()}
     inputs.update(name="単管燃焼器の出口条件反映", mode="airflow")
     p.update(air_mass_flow_kg_s=airflow*n, turbine_inlet_temperature_k=tout,
              combustor_pressure_loss=pressure_loss/pin, combustion_efficiency=eta)
     combined = run_case(inputs)
-    return {"format": "single-can-combustor-result", "schema_version": 1, "source_cycle": source,
+    result = {"format": "single-can-combustor-result", "schema_version": 1, "source_cycle": source,
             "setup": setup, "per_can": {"air_kg_s": airflow, "fuel_kg_s": fuel, "outlet_flow_kg_s": airflow+fuel,
-                "zones_kg_s": {role: airflow*share for role, share in shares.items()},
+                "zones_kg_s": zone_flows, "air_split": shares,
+                "zone_mass_residual_kg_s": math.fsum(zone_flows.values())-airflow,
                 "primary_equivalence_ratio_indicator": ratio/(shares["primary"] * limit) if nasa else None,
                 "inlet_total_pressure_pa": pin, "inlet_total_temperature_k": tin,
                 "outlet_total_pressure_pa": pin-pressure_loss, "outlet_total_temperature_k": tout,
-                "total_pressure_loss_pa": pressure_loss,
+                "total_pressure_loss_pa": pressure_loss, "total_pressure_loss_fraction": pressure_loss/pin,
+                "inlet_mach": inlet_mach, "reference_dynamic_pressure_pa": dynamic_pressure,
                 "enthalpy_balance_residual_w": (airflow+fuel)*gas_out(ratio).h(tout)-airflow*hin-fuel*eta*lhv},
             "cycle_case": combined}
+    if "thermal" in setup:
+        result["thermal"] = evaluate_thermal(setup["thermal"], gas_out(ratio), tin, tout, airflow+fuel)
+    return result

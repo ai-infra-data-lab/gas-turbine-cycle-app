@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "name": "架空サンプル：回転半径流路と冷却分配",
+  "gas": {
+    "R": 287.05,
+    "gamma": 1.4
+  },
+  "nodes": [
+    {
+      "id": "rot_in",
+      "name": "回転系供給境界",
+      "kind": "boundary",
+      "frame": "rotating",
+      "rpm": 30000,
+      "radius_m": 0.08,
+      "pressure_pa": 400000,
+      "temperature_k": 550
+    },
+    {
+      "id": "rot_out",
+      "name": "外周回転混合室",
+      "kind": "junction",
+      "frame": "rotating",
+      "rpm": 30000,
+      "radius_m": 0.18,
+      "pressure_pa": 450000,
+      "temperature_k": 675
+    },
+    {
+      "id": "cool_out",
+      "name": "回転系冷却排出境界",
+      "kind": "boundary",
+      "frame": "rotating",
+      "rpm": 30000,
+      "radius_m": 0.18,
+      "pressure_pa": 300000,
+      "temperature_k": 675
+    }
+  ],
+  "edges": [
+    {
+      "id": "radial",
+      "name": "断熱回転半径流路",
+      "kind": "rotating_pipe",
+      "from": "rot_in",
+      "to": "rot_out",
+      "area_m2": 0.0002,
+      "diameter_m": 0.0159576912,
+      "length_m": 0.2,
+      "k": 0.3,
+      "friction": "fixed",
+      "friction_factor": 0.02,
+      "cells": 48,
+      "source": "架空値。完全追従・断熱。摩擦係数は仮定。"
+    },
+    {
+      "id": "cooling",
+      "name": "回転系の冷却孔",
+      "kind": "orifice",
+      "from": "rot_out",
+      "to": "cool_out",
+      "area_m2": 8e-05,
+      "cd": 0.7,
+      "source": "架空のCd。両端は同じ半径・回転数。"
+    }
+  ]
+}

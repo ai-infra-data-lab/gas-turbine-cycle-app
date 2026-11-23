@@ -1,0 +1,347 @@
+{
+  "source_stage": 2,
+  "supply_node": "bleed",
+  "turbine_case": "3段均等",
+  "iterate": true,
+  "network": {
+    "schema_version": 1,
+    "name": "3段タービン 静翼・動翼冷却と段間パージ（仮想）",
+    "gas": {
+      "R": 287.05,
+      "gamma": 1.4
+    },
+    "nodes": [
+      {
+        "id": "bleed",
+        "kind": "boundary",
+        "name": "第2段圧縮機抽気（絶対全圧）",
+        "pressure_pa": 320000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t1-ngv-room",
+        "kind": "junction",
+        "name": "第1段 静翼冷却供給室",
+        "pressure_pa": 250000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t1-ngv-out",
+        "kind": "boundary",
+        "name": "第1段 静翼冷却の主流接続（絶対静圧）",
+        "pressure_pa": 200000,
+        "temperature_k": 850
+      },
+      {
+        "id": "t1-rot-room",
+        "kind": "junction",
+        "name": "第1段 動翼冷却供給室",
+        "pressure_pa": 250000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t1-rot-out",
+        "kind": "boundary",
+        "name": "第1段 動翼冷却の主流接続（絶対静圧）",
+        "pressure_pa": 200000,
+        "temperature_k": 850
+      },
+      {
+        "id": "t1-purge-room",
+        "kind": "junction",
+        "name": "第1段 段間パージ供給室",
+        "pressure_pa": 250000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t1-purge-out",
+        "kind": "boundary",
+        "name": "第1段 段間パージの主流接続（絶対静圧）",
+        "pressure_pa": 200000,
+        "temperature_k": 850
+      },
+      {
+        "id": "t2-ngv-room",
+        "kind": "junction",
+        "name": "第2段 静翼冷却供給室",
+        "pressure_pa": 225000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t2-ngv-out",
+        "kind": "boundary",
+        "name": "第2段 静翼冷却の主流接続（絶対静圧）",
+        "pressure_pa": 175000,
+        "temperature_k": 850
+      },
+      {
+        "id": "t2-rot-room",
+        "kind": "junction",
+        "name": "第2段 動翼冷却供給室",
+        "pressure_pa": 225000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t2-rot-out",
+        "kind": "boundary",
+        "name": "第2段 動翼冷却の主流接続（絶対静圧）",
+        "pressure_pa": 175000,
+        "temperature_k": 850
+      },
+      {
+        "id": "t2-purge-room",
+        "kind": "junction",
+        "name": "第2段 段間パージ供給室",
+        "pressure_pa": 225000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t2-purge-out",
+        "kind": "boundary",
+        "name": "第2段 段間パージの主流接続（絶対静圧）",
+        "pressure_pa": 175000,
+        "temperature_k": 850
+      },
+      {
+        "id": "t3-ngv-room",
+        "kind": "junction",
+        "name": "第3段 静翼冷却供給室",
+        "pressure_pa": 200000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t3-ngv-out",
+        "kind": "boundary",
+        "name": "第3段 静翼冷却の主流接続（絶対静圧）",
+        "pressure_pa": 150000,
+        "temperature_k": 850
+      },
+      {
+        "id": "t3-rot-room",
+        "kind": "junction",
+        "name": "第3段 動翼冷却供給室",
+        "pressure_pa": 200000,
+        "temperature_k": 442
+      },
+      {
+        "id": "t3-rot-out",
+        "kind": "boundary",
+        "name": "第3段 動翼冷却の主流接続（絶対静圧）",
+        "pressure_pa": 150000,
+        "temperature_k": 850
+      }
+    ],
+    "edges": [
+      {
+        "id": "t1-ngv-feed",
+        "kind": "orifice",
+        "name": "第1段 静翼冷却計量孔",
+        "from": "bleed",
+        "to": "t1-ngv-room",
+        "area_m2": 0.000012,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t1-ngv",
+        "kind": "orifice",
+        "name": "第1段 静翼冷却排出",
+        "from": "t1-ngv-room",
+        "to": "t1-ngv-out",
+        "area_m2": 0.000003,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t1-rot-feed",
+        "kind": "orifice",
+        "name": "第1段 動翼冷却計量孔",
+        "from": "bleed",
+        "to": "t1-rot-room",
+        "area_m2": 0.000024,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t1-rot",
+        "kind": "orifice",
+        "name": "第1段 動翼冷却排出",
+        "from": "t1-rot-room",
+        "to": "t1-rot-out",
+        "area_m2": 0.000006,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t1-purge-feed",
+        "kind": "orifice",
+        "name": "第1段 段間パージ計量孔",
+        "from": "bleed",
+        "to": "t1-purge-room",
+        "area_m2": 0.000012,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t1-purge",
+        "kind": "orifice",
+        "name": "第1段 段間パージ排出",
+        "from": "t1-purge-room",
+        "to": "t1-purge-out",
+        "area_m2": 0.000003,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t2-ngv-feed",
+        "kind": "orifice",
+        "name": "第2段 静翼冷却計量孔",
+        "from": "bleed",
+        "to": "t2-ngv-room",
+        "area_m2": 0.000012,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t2-ngv",
+        "kind": "orifice",
+        "name": "第2段 静翼冷却排出",
+        "from": "t2-ngv-room",
+        "to": "t2-ngv-out",
+        "area_m2": 0.000003,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t2-rot-feed",
+        "kind": "orifice",
+        "name": "第2段 動翼冷却計量孔",
+        "from": "bleed",
+        "to": "t2-rot-room",
+        "area_m2": 0.000024,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t2-rot",
+        "kind": "orifice",
+        "name": "第2段 動翼冷却排出",
+        "from": "t2-rot-room",
+        "to": "t2-rot-out",
+        "area_m2": 0.000006,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t2-purge-feed",
+        "kind": "orifice",
+        "name": "第2段 段間パージ計量孔",
+        "from": "bleed",
+        "to": "t2-purge-room",
+        "area_m2": 0.000012,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t2-purge",
+        "kind": "orifice",
+        "name": "第2段 段間パージ排出",
+        "from": "t2-purge-room",
+        "to": "t2-purge-out",
+        "area_m2": 0.000003,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t3-ngv-feed",
+        "kind": "orifice",
+        "name": "第3段 静翼冷却計量孔",
+        "from": "bleed",
+        "to": "t3-ngv-room",
+        "area_m2": 0.000012,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t3-ngv",
+        "kind": "orifice",
+        "name": "第3段 静翼冷却排出",
+        "from": "t3-ngv-room",
+        "to": "t3-ngv-out",
+        "area_m2": 0.000003,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t3-rot-feed",
+        "kind": "orifice",
+        "name": "第3段 動翼冷却計量孔",
+        "from": "bleed",
+        "to": "t3-rot-room",
+        "area_m2": 0.000024,
+        "cd": 0.72,
+        "source": "仮想値"
+      },
+      {
+        "id": "t3-rot",
+        "kind": "orifice",
+        "name": "第3段 動翼冷却排出",
+        "from": "t3-rot-room",
+        "to": "t3-rot-out",
+        "area_m2": 0.000006,
+        "cd": 0.72,
+        "source": "仮想値"
+      }
+    ]
+  },
+  "injections": [
+    {
+      "boundary_node": "t1-ngv-out",
+      "station": "TB-01-NGV-TE",
+      "edge": "t1-ngv",
+      "mix_pressure_loss_fraction": 0.003
+    },
+    {
+      "boundary_node": "t1-rot-out",
+      "station": "TB-01-ROT-TE",
+      "edge": "t1-rot",
+      "mix_pressure_loss_fraction": 0.003
+    },
+    {
+      "boundary_node": "t1-purge-out",
+      "station": "TB-02-NGV-LE",
+      "edge": "t1-purge",
+      "mix_pressure_loss_fraction": 0.003
+    },
+    {
+      "boundary_node": "t2-ngv-out",
+      "station": "TB-02-NGV-TE",
+      "edge": "t2-ngv",
+      "mix_pressure_loss_fraction": 0.003
+    },
+    {
+      "boundary_node": "t2-rot-out",
+      "station": "TB-02-ROT-TE",
+      "edge": "t2-rot",
+      "mix_pressure_loss_fraction": 0.003
+    },
+    {
+      "boundary_node": "t2-purge-out",
+      "station": "TB-03-NGV-LE",
+      "edge": "t2-purge",
+      "mix_pressure_loss_fraction": 0.003
+    },
+    {
+      "boundary_node": "t3-ngv-out",
+      "station": "TB-03-NGV-TE",
+      "edge": "t3-ngv",
+      "mix_pressure_loss_fraction": 0.003
+    },
+    {
+      "boundary_node": "t3-rot-out",
+      "station": "TB-03-ROT-TE",
+      "edge": "t3-rot",
+      "mix_pressure_loss_fraction": 0.003
+    }
+  ]
+}

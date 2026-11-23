@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="network-token" content="__TOKEN__">
+<meta name="network-max-nodes" content="__MAX_NODES__">
+<meta name="network-max-edges" content="__MAX_EDGES__">
+<title>Secondary Air Network — 二次空気ネットワーク</title>
+<link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script>
+</head>
+<body>
+<aside class="rail">
+  <div class="brand"><span class="brand-mark">S<span>↗</span>A</span><strong>SECONDARY AIR<br><small>NETWORK STUDIO</small></strong></div>
+  <div class="rail-label">WORKSPACE</div>
+  <nav aria-label="画面"><button data-view="model" class="active">01 <span>ネットワーク</span></button><button data-view="results">02 <span>計算結果</span></button><button data-view="sweep">03 <span>感度解析</span></button><button data-view="vortex">04 <span>渦圧力分布</span></button><button data-view="cases">05 <span>保存・比較</span></button><button data-view="grid">06 <span>分割数チェック</span></button><button data-view="guide">07 <span>操作・計算モデル</span></button></nav>
+  <div class="rail-foot"><span class="dot"></span> LOCAL WORKSPACE<br><small>定常 / 圧縮性 / 比熱一定<br>Numerical verification · v0.5</small></div>
+</aside>
+<main>
+  <header><div><div class="eyebrow">GAS TURBINE ENGINEERING</div><h1>二次空気ネットワーク</h1><p>抽気から冷却・シールまで、空気の流れをつなぐ。</p></div><div class="header-actions"><button id="sample">基本サンプル</button><button id="sample-stage2">シールサンプル</button><button id="sample-rotating">回転流路サンプル</button><button id="new">新規</button><button id="calculate" class="primary">定常計算を実行 <span>↗</span></button></div></header>
+  <div class="toolbar"><label class="project-name">案件名 <input id="model-name" aria-label="案件名"></label><span id="state" class="state">未計算</span><button id="import">JSON取込</button><input id="file" type="file" accept=".json,application/json" hidden><button id="export-model">入力JSON</button><button id="save" disabled>ケース保存</button></div>
+  <div id="message" role="status" aria-live="polite" hidden></div>
+  <section id="view-model" class="view">
+    <div class="section-title"><div><div class="eyebrow">SYSTEM OVERVIEW</div><h2>流路を組み立てる</h2></div><div class="legend"><span class="legend-boundary"></span>圧力・温度境界 <span class="legend-junction"></span>混合室</div></div>
+    <details class="diagram-card" id="diagram-panel" open><summary class="diagram-top"><span>ネットワーク接続図</span><span id="network-count"></span></summary><div id="diagram" aria-label="ネットワーク接続図"></div><div class="diagram-note">枝の矢印は定義した正方向。ノードの圧力は静圧。回転系の入力全温は相対全温です。完全混合室は各座標系で速度ゼロとします。</div></details>
+    <div class="panel"><div class="panel-head"><h3>ノード <span>境界と混合室 / 回転系は同じ接続系の全ノードに同一rpmを指定</span></h3><button id="add-node">＋ ノード追加</button></div><label class="list-search">ノードを検索<input id="node-search" type="search" placeholder="ID・名称"></label><div class="table-scroll model-list"><table><thead><tr><th>ID</th><th>名称</th><th>種類</th><th>座標系</th><th>回転数 [rpm]</th><th>半径 [mm]</th><th>静圧 / 初期値 [kPa abs]</th><th>各系全温 / 初期値 [K]</th><th>熱入力 [W]</th><th></th></tr></thead><tbody id="nodes-editor"></tbody></table></div></div>
+    <div class="edges-layout"><div class="panel"><div class="panel-head"><h3>流路 <span>行を選択して詳細を編集</span></h3><button id="add-edge">＋ 流路追加</button></div><label class="list-search">流路を検索<input id="edge-search" type="search" placeholder="ID・名称・接続ノード"></label><div class="table-scroll model-list"><table><thead><tr><th>名称 / ID</th><th>種類</th><th>接続</th><th>面積 [mm²]</th><th></th></tr></thead><tbody id="edges-editor"></tbody></table></div></div><div class="panel detail"><div class="panel-head"><h3>流路の詳細</h3><span id="edge-id" class="mono"></span></div><div id="edge-detail"></div></div></div>
+    <div class="panel gas-panel"><h3>空気の物性・モデル条件</h3><div class="fields"><label>気体定数 R [J/(kg·K)]<input id="gas-r" type="number" step="any"></label><label>比熱比 γ [-]<input id="gas-gamma" type="number" step="any"></label><div class="help">理想気体・比熱一定。cp = γR/(γ−1)。回転流路は断熱・完全追従で回転仕事を計算します。異なる座標系の直接接続・風損・部材温度は未対応です。指定スワールの等温渦は独立した補助計算です。</div></div></div>
+  </section>
+  <section id="view-results" class="view" hidden><div class="section-title"><div><div class="eyebrow">STEADY STATE SOLUTION</div><h2>計算結果</h2></div><div><button id="export-result" disabled>結果JSON</button><button id="export-csv" disabled>結果CSV</button></div></div><div id="results-content" class="empty">ネットワークを設定して「定常計算を実行」を押してください。</div></section>
+  <section id="view-sweep" class="view" hidden><div class="section-title"><div><div class="eyebrow">PARAMETRIC STUDY</div><h2>1変数の感度解析</h2></div></div><div class="panel padded"><p>各点で圧力・温度・流量を独立に再計算します。値は下記のSI単位で指定してください。未成立点は理由を表示します。</p><div class="fields"><label>対象<select id="sweep-target"></select></label><label>項目<select id="sweep-field"></select></label><label>開始値<input id="sweep-start" type="number" step="any" value="300000"></label><label>終了値<input id="sweep-end" type="number" step="any" value="700000"></label><label>点数（2～15）<input id="sweep-count" type="number" min="2" max="15" value="5"></label><button id="run-sweep" class="primary">感度解析を実行</button></div></div><div id="sweep-content"></div></section>
+  <section id="view-vortex" class="view" hidden><div class="section-title"><div><div class="eyebrow">RADIAL EQUILIBRIUM STUDY</div><h2>指定スワールの渦圧力分布</h2></div></div><div class="panel padded"><p>等温・軸対称の半径方向静圧平衡を計算します。ネットワークの枝には直接接続しません。基準半径の静圧と空気の静温を指定してください。回転数とスワール比は流体の接線速度を規定する入力です。</p><div class="fields">
+    <label>渦の種類<select data-vortex="kind"><option value="forced">強制渦（Vθ ∝ r）</option><option value="free">自由渦（rVθ 一定）</option></select></label>
+    <label>基準回転数 [rpm]<input data-vortex="rpm" type="number" step="any"></label><label>基準半径でのスワール比 β<input data-vortex="swirl_ratio" type="number" step="any"></label>
+    <label>基準半径 [mm]<input data-vortex="reference_radius_m" data-scale="0.001" type="number" step="any"></label><label>基準静圧 [kPa abs]<input data-vortex="reference_pressure_pa" data-scale="1000" type="number" step="any"></label><label>静温 [K]<input data-vortex="static_temperature_k" type="number" step="any"></label>
+    <label>開始半径 [mm]<input data-vortex="start_radius_m" data-scale="0.001" type="number" step="any"></label><label>終了半径 [mm]<input data-vortex="end_radius_m" data-scale="0.001" type="number" step="any"></label><label>評価点数（2～101）<input data-vortex="points" type="number" step="1"></label><button id="run-vortex" class="primary">渦圧力分布を計算</button>
+    </div><p class="help">設定を編集すると案件JSON・ケースに保存されます。ネットワークの圧力境界へ結果を自動転記しません。静圧・全圧と座標系の定義を確認して使用してください。</p></div><div id="vortex-content"></div></section>
+  <section id="view-cases" class="view" hidden><div class="section-title"><div><div class="eyebrow">DESIGN ALTERNATIVES</div><h2>保存ケースと比較</h2></div><button id="refresh-cases">一覧更新</button></div><p class="help">保存は計算済みの入力と結果を新しいケースとして記録します。過去のケースは上書きしません。</p><div id="cases-list" class="panel"></div><div id="comparison"></div></section>
+  <section id="view-grid" class="view" hidden>
+    <div class="section-title"><div><div class="eyebrow">DISCRETIZATION CHECK</div><h2>分割数依存性チェック</h2></div><button id="export-grid" disabled>検証レポートJSON</button></div>
+    <div class="panel padded"><p>配管・回転流路・局所抵抗の分割数を基準・2倍・4倍として、全ネットワークを独立に再計算します。対象流路の基準分割数は64以下にしてください。境界条件・形状・係数は同じ値を使用します。</p>
+    <div class="fields"><label>相対比較許容値 [%]<input id="grid-relative" type="number" min="0.000001" max="10" step="any" value="0.1"></label><button id="run-grid" class="primary">分割数チェックを実行</button></div>
+    <p class="help">2倍→4倍の差 ≤ max（絶対下限, 相対許容値×両者の絶対値の最大）を比較します。絶対下限: 流量1e−8 kg/s、圧力1 Pa、温度0.01 K、熱・軸動力0.01 W、M 1e−4。これは比較用の設定で、ソルバーの収束許容値とは異なります。</p></div>
+    <div id="grid-filter" class="panel padded" hidden><label>表示する量<select id="grid-metric"><option value="mass_flow_kg_s">流路流量 [kg/s]</option><option value="pressure_pa">ノード静圧 [Pa]</option><option value="temperature_k">ノード各系全温 [K]</option><option value="absolute_total_temperature_k">ノード絶対全温 [K]</option><option value="outlet_total_temperature_k">流路出口各系全温 [K]</option><option value="heat_w">流路熱入力 [W]</option><option value="shaft_work_w">流路軸動力 [W]</option><option value="max_mach">流路最大マッハ数 [-]</option></select></label></div>
+    <div id="grid-content"></div>
+  </section>
+  <section id="view-guide" class="view" hidden><div class="section-title"><div><div class="eyebrow">METHOD & VALIDATION</div><h2>操作・計算モデル</h2></div></div><article class="panel guide">
+    <h3>最初の操作</h3><ol><li>「サンプル」で架空の抽気・冷却・シール分配を読み込みます。</li><li>境界ノードに絶対圧力[kPa]と全温[K]を指定します。混合室の圧力・温度は初期値で、計算で決まります。</li><li>流路の行を選び、面積、Cd、長さ、Darcy摩擦係数、壁温などを編集します。出典メモも記録してください。</li><li>「定常計算を実行」で結果・残差・適用上の注記を確認します。</li><li>案件名を変えてケース保存し、「保存・比較」で2案を比較します。入力変更後の結果は失効し、再計算が必要です。</li></ol>
+    <h3>状態量と係数</h3><p>ノードは速度ゼロの完全混合室です。静圧=全圧、温度は混合後の全温です。圧力は絶対圧。すべての流路は両方向に流れ、逆流では反対側の境界温度と逆方向Cd/Kを使います。主流側の高温は、そこから逆流する場合だけ流入条件になります。</p><p>オリフィスは貯気槽からの圧縮性流れをCdで補正します。等価漏れは同じ式で、ラビリンス歯形や回転の効果を自動予測しません。Cdの基準面積は入力面積です。</p>
+    <h3>配管の式</h3><p>一定断面の亜音速1D流を分割します。質量流束G=ρV=ṁ/A、p=ρRT、h₀=cpT+V²/2。</p><pre>p₂ − p₁ + G(V₂ − V₁) + (fD Δx/Dh + K/N) G(V₁+V₂)/4 = 0
+ṁ cp(T₀₂ − T₀₁) = Qcell
+Qwall = h Aw (Tw − Tstatic)  （各区間の指数積分）</pre><p>入口は等エントロピーで加速し、出口の静圧を下流混合室に合わせます。音速限界に達するとチョーク流量になります。出口の運動エネルギーは混合室で散逸し、全エンタルピーは保持します。局所抵抗は長さゼロ・熱入力ゼロで、同じ運動量式にKだけを指定した等価モデルです。Kは全区間に均等配分するため、高速の急縮小・急拡大の詳細モデルではありません。</p><p>壁面積は4A L/Dh。壁面熱交換では区間入口の運動エネルギーを用いて全温と静温を変換します。指定熱入力は各区間に均等配分します。高マッハ・強い加熱では分割数48→96→192などで結果の変化を確認してください。</p><p>自動摩擦は円管層流64/Re、乱流Haaland、Re=2300～4000は線形補間。粘度は空気のSutherland式。粗さは等価砂粒粗さです。fDはDarcy係数（Fanning係数の4倍）。非円形の層流は固有の係数が必要で、固定摩擦の指定を推奨します。</p>
+    <h3>熱・収束</h3><p>混合室では流入・流出の質量流量と、入熱を含む絶対全エンタルピーの収支を合わせます。圧力を減衰Newton法で解き、温度と反復します。内部ノードごとの質量残差1e−9+1e−7×流量[kg/s]と、熱残差1e−5+1e−7×エンタルピー流量[W]を基準にし、質量残差によるエネルギー誤差を熱許容値の半分以内に抑えます。境界の収支差は外部への供給・排出です。圧力・温度反復が止まったときは、「計算結果」の収束診断で許容値を超えたノードを確認できます。</p><p>流れのない混合室の温度は不定として表示します。温度範囲は150～2500 K、圧力は1 kPa～50 MPa。比熱一定の誤差は温度範囲が広いほど大きくなります。回転、浮力、超音速、衝撃波、固体熱伝導、熱変形、リムシール侵入、翼温・寿命は評価しません。実機設計合否の自動判定は行いません。</p>
+    <h3>第2段階A：ラビリンスと渦の補助計算</h3><p>「シールサンプル」は4歯の架空値です。ラビリンスでは隙間の平均径Dmと半径隙間cから各歯の面積A=πDm cを算出し、共通流量を満たす歯間圧力を計算します。各歯は圧縮性環状絞りで、歯間の軸方向運動エネルギーは完全散逸します。順逆方向Cdは各歯共通の校正値。個別隙間は正方向の歯番号順に指定し、逆流では逆順に評価します。中間歯でチョークする個別隙間のケースは、下流膨張が未対応のため未成立と表示します。歯先幅・ピッチ・ハニカム・持越し・回転風損の相関は含みません。Vermes法の実装ではありません。</p><p>隙間の感度解析はSI単位[m]です。例えば0.1～0.2 mmは0.0001～0.0002 m。個別隙間を入力している場合、全歯共通隙間の掃引は使用できません。</p><pre>dp/dr = ρ Vθ²/r ; p=ρRT（静温Tを固定）
+強制渦: Vθ=βΩr ; ln(p/pref)=β²Ω²(r²−rref²)/(2RT)
+自由渦: C=βΩrref² ; Vθ=C/r ; ln(p/pref)=C²(1/rref²−1/r²)/(2RT)</pre><p>渦の全温はT0=T+Vθ²/(2cp)。圧力比は回転方向の符号によらず、速度は符号を保持します。これは流量・トルク・回転仕事・必要熱量を計算するモデルではありません。完全混合室ネットワークとの熱力学的な接続は次段階です。</p>
+    <h3>第2段階B：同一回転系の断熱流路</h3><p>「回転流路サンプル」では、回転する供給境界→半径流路→外周混合室→同じ半径の冷却孔を連成計算します。ノードの静圧は相対全圧と等しく、入力温度は相対全温（相対速度ゼロなので静温と等しい）です。絶対全温・絶対全圧は結果表で別に表示します。境界値は回転系の量として指定する必要があります。</p><pre>U=Ωr ; I=cp T0,rel − U²/2
+T0,rel,out − T0,rel,in = (Uout²−Uin²)/(2cp)
+T0,abs = T0,rel + U²/(2cp) （混合室）
+Wshaft = ṁ (Uout²−Uin²) ; τ=Wshaft/Ω
+Σṁ h0,abs,in − Σṁ h0,abs,out + Q + Wshaft = 0</pre><p>回転系での遠心ポテンシャルの等エントロピー変化と、Darcy摩擦による圧力低下を分割して解きます。相対全温の上昇をすべて軸仕事とする扱いはせず、絶対系の運動エネルギーも収支に含めます。正の仕事は流体への入力、内向き流れでは負の仕事になり得ます。半径が同じなら回転による仕事差は0です。</p><p>同じ接続系は全ノードが同じ回転数・完全追従に限定します。半径を変える枝は「断熱回転流路」で接続し、通常の配管・孔・シールは同じ半径で使います。静止系との直接接続、異なる回転数、任意スワール、回転流路の加熱は拒否します。摩擦の回転補正・風損・スリップは未計算。高マッハや大きな遠心力では分割数48→96→192の感度を確認してください。</p><p>「感度解析」の対象「回転系」を選ぶと、その接続系の全ノードのrpmを同時に変更します。各点の境界相対全温は入力値を維持します。単一ノードだけのrpm変更で、異なる回転数を誤って接続することを避けています。</p>
+    <h3>分割数依存性チェック</h3><p>「分割数チェック」は流路の基準・2倍・4倍で全ネットワークを独立に解き、流量・圧力・温度・熱・軸動力・最大Mを比較します。対象の基準分割は64以下にしてください。2倍→4倍の差を明示した絶対下限・相対許容値で比較し、振動・変化増大・チョーク・流向切替を要確認として表示します。未成立段階も理由を残します。入力と保存ケースは変更せず、3段階の全入力・結果をレポートJSONに出力します。入力・比較許容値を変更するとレポートは失効します。比較許容値内は実機精度の保証ではなく、GCIや真の誤差帯は計算しません。<a href="https://www.grc.nasa.gov/www/wind/valid/tutorial/spatconv.html" target="_blank" rel="noreferrer">NASAの段階的分割検証の説明</a>を参照してください。</p>
+    <h3>理論の出典</h3><ul><li><a href="https://www.grc.nasa.gov/www/k-12/BGP/mflchk.html" target="_blank" rel="noreferrer">NASA Glenn — Mass Flow Choking</a>：圧縮性絞りの理想流量と音速限界。</li><li><a href="https://archive.nptel.ac.in/content/storage2/courses/112103021/module2/lec15/1.html" target="_blank" rel="noreferrer">NPTEL — Fanno Flow</a>：一定断面の摩擦流れ。配管の検証基準。</li><li><a href="https://www.nasa.gov/gfssp/" target="_blank" rel="noreferrer">NASA GFSSP</a>：ノードの質量・エネルギー、枝の運動量という構成。</li><li><a href="https://help.altair.com/flowsim/topics/internal/solver_technical_manual/elements/elements_labyrinth_tbt_seal_internal.htm" target="_blank" rel="noreferrer">Flow Simulator — Tooth by Tooth Seal</a>：歯ごとに解く構成と未実装補正項の参考。</li><li><a href="https://help.altair.com/flowsim/topics/internal/solver_technical_manual/elements/elements_vortexes_internal.htm" target="_blank" rel="noreferrer">Flow Simulator — Vortex Elements</a>：渦の圧力・温度・座標系の参考。商用モデルの再現や精度保証ではありません。</li></ul>
+    <p>起動：start.bat、保存先：このアプリのdata/cases.sqlite3。JSON/CSVはブラウザからダウンロード。終了：起動ウィンドウでCtrl+C。サンプルは全数値が説明用の仮定です。</p>
+  </article></section>
+  <footer>SECONDARY AIR NETWORK <span>v0.5 · offline workspace</span></footer>
+</main>
+</body></html>

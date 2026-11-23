@@ -1,0 +1,195 @@
+{
+  "sources": [
+    {
+      "stage": 1,
+      "position": "outlet",
+      "node": "cp1-out"
+    },
+    {
+      "stage": 2,
+      "position": "outlet",
+      "node": "cp2-out"
+    }
+  ],
+  "cavities": [
+    {
+      "stage": 1,
+      "region": 1,
+      "side": "front",
+      "node": "c1-front"
+    },
+    {
+      "stage": 1,
+      "region": 1,
+      "side": "back",
+      "node": "c1-back"
+    },
+    {
+      "stage": 2,
+      "region": 1,
+      "side": "front",
+      "node": "c2-front"
+    },
+    {
+      "stage": 2,
+      "region": 1,
+      "side": "back",
+      "node": "c2-back"
+    }
+  ],
+  "cases": {
+    "基準隙間": {},
+    "第1段背面の隙間拡大": {
+      "seal-1-back": 0.00022
+    }
+  },
+  "network": {
+    "schema_version": 1,
+    "name": "遠心2段 インペラー前面・背面キャビティ（仮想）",
+    "gas": {
+      "R": 287.05,
+      "gamma": 1.4
+    },
+    "nodes": [
+      {
+        "id": "vent",
+        "kind": "boundary",
+        "name": "シール排出（仮の絶対静圧）",
+        "pressure_pa": 101325,
+        "temperature_k": 300
+      },
+      {
+        "id": "cp1-out",
+        "kind": "boundary",
+        "name": "第1段インペラー出口",
+        "pressure_pa": 191325,
+        "temperature_k": 380
+      },
+      {
+        "id": "c1-front",
+        "kind": "junction",
+        "name": "第1段 前面キャビティ外周",
+        "pressure_pa": 141325,
+        "temperature_k": 380
+      },
+      {
+        "id": "c1-back",
+        "kind": "junction",
+        "name": "第1段 背面キャビティ外周",
+        "pressure_pa": 141325,
+        "temperature_k": 380
+      },
+      {
+        "id": "cp2-out",
+        "kind": "boundary",
+        "name": "第2段インペラー出口",
+        "pressure_pa": 281325,
+        "temperature_k": 410
+      },
+      {
+        "id": "c2-front",
+        "kind": "junction",
+        "name": "第2段 前面キャビティ外周",
+        "pressure_pa": 181325,
+        "temperature_k": 410
+      },
+      {
+        "id": "c2-back",
+        "kind": "junction",
+        "name": "第2段 背面キャビティ外周",
+        "pressure_pa": 181325,
+        "temperature_k": 410
+      }
+    ],
+    "edges": [
+      {
+        "id": "seal-1-front",
+        "kind": "labyrinth",
+        "name": "第1段 前面ラビリンス",
+        "from": "cp1-out",
+        "to": "c1-front",
+        "seal_diameter_m": 0.18,
+        "clearance_m": 0.00015,
+        "tooth_count": 4,
+        "cd": 0.7,
+        "source": "仮想シール"
+      },
+      {
+        "id": "vent-1-front",
+        "kind": "orifice",
+        "name": "第1段 前面ベント",
+        "from": "c1-front",
+        "to": "vent",
+        "area_m2": 0.00012,
+        "cd": 0.72,
+        "source": "仮想ベント"
+      },
+      {
+        "id": "seal-1-back",
+        "kind": "labyrinth",
+        "name": "第1段 背面ラビリンス",
+        "from": "cp1-out",
+        "to": "c1-back",
+        "seal_diameter_m": 0.18,
+        "clearance_m": 0.00015,
+        "tooth_count": 4,
+        "cd": 0.7,
+        "source": "仮想シール"
+      },
+      {
+        "id": "vent-1-back",
+        "kind": "orifice",
+        "name": "第1段 背面ベント",
+        "from": "c1-back",
+        "to": "vent",
+        "area_m2": 0.000096,
+        "cd": 0.72,
+        "source": "仮想ベント"
+      },
+      {
+        "id": "seal-2-front",
+        "kind": "labyrinth",
+        "name": "第2段 前面ラビリンス",
+        "from": "cp2-out",
+        "to": "c2-front",
+        "seal_diameter_m": 0.128,
+        "clearance_m": 0.00015,
+        "tooth_count": 4,
+        "cd": 0.7,
+        "source": "仮想シール"
+      },
+      {
+        "id": "vent-2-front",
+        "kind": "orifice",
+        "name": "第2段 前面ベント",
+        "from": "c2-front",
+        "to": "vent",
+        "area_m2": 0.00012,
+        "cd": 0.72,
+        "source": "仮想ベント"
+      },
+      {
+        "id": "seal-2-back",
+        "kind": "labyrinth",
+        "name": "第2段 背面ラビリンス",
+        "from": "cp2-out",
+        "to": "c2-back",
+        "seal_diameter_m": 0.128,
+        "clearance_m": 0.00015,
+        "tooth_count": 4,
+        "cd": 0.7,
+        "source": "仮想シール"
+      },
+      {
+        "id": "vent-2-back",
+        "kind": "orifice",
+        "name": "第2段 背面ベント",
+        "from": "c2-back",
+        "to": "vent",
+        "area_m2": 0.000096,
+        "cd": 0.72,
+        "source": "仮想ベント"
+      }
+    ]
+  }
+}

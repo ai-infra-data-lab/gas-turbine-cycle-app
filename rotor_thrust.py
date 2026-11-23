@@ -16,6 +16,11 @@ def cavity_pressure(spec, state, omega, gas, inner, outer):
 
 def evaluate(document, setup):
     case, source = verified_cycle(document)
+    return evaluate_case(case, setup, source)
+
+
+def evaluate_case(case, setup, source):
+    """Evaluate loads for a Cycle Studio case already calculated from its input."""
     train = case["result"]["stage_results"]["compressor"]
     rotors = [row for row in train.get("elements", []) if row["kind"] == "rotor"]
     if not rotors or len(setup["stages"]) != len(rotors):

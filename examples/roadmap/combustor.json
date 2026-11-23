@@ -8,5 +8,17 @@
   },
   "target_total_temperature_k": 1123,
   "reference_area_per_can_m2": 0.004,
-  "loss_coefficient": 2
+  "loss_coefficient": 2,
+  "thermal": {
+    "exit_sectors": [
+      {"id": "内周側", "mass_fraction": 0.25, "temperature_offset_k": -45},
+      {"id": "中央", "mass_fraction": 0.5, "temperature_offset_k": 55},
+      {"id": "外周側", "mass_fraction": 0.25, "temperature_offset_k": -65}
+    ],
+    "liner_segments": [
+      {"id": "一次域ライナ", "area_m2": 0.017, "gas_temperature_k": 1600, "coolant_temperature_k": 465,
+       "gas_htc_w_m2_k": 150, "coolant_htc_w_m2_k": 240, "film_effectiveness": 0.42,
+       "thickness_m": 0.0012, "conductivity_w_m_k": 18, "metal_limit_k": 1000}
+    ]
+  }
 }

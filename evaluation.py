@@ -283,8 +283,8 @@ class EvaluationStore(CaseStore):
                     for r in db.execute('SELECT * FROM cases ORDER BY rowid DESC')]
 
 
-def example_input():
-    base = default_input()
+def example_input(baseline=None):
+    base = default_input() if baseline is None else copy.deepcopy(baseline)
     out = {'schema_version':1,'name':'仮想試験・定常60〜100秒','source_name':'fictional-test.csv',
            'notes':'すべて仮想計測値。検証方法の操作例です。','baseline_source':'既定NASA9設計点',
            'calibrated_model':False,'calibration_note':'','baseline_input':base,
@@ -306,10 +306,12 @@ def example_input():
                                 'uncertainty_basis':'操作例の仮定値、平均の拡張不確かさ k=2',
                                 'gauge_reference_pa':101325})
     result=run_cycle(base)['result']; targets={x['key']:x['value'] for x in catalog(result)}
+    parameters = base["parameters"]
     stream=io.StringIO(); writer=csv.writer(stream,lineterminator='\n')
     writer.writerow(['time_s']+[s[0] for s in specs])
     for t,jitter in ((0,-20),(20,-10),(40,-4),(60,-1),(70,.5),(80,0),(90,-.5),(100,1),(120,10)):
-        values=[15,101.325,1.2,targets['station:2:total_temperature_k']-273.15+3+jitter,
+        values=[parameters["ambient_temperature_k"]-273.15, parameters["ambient_pressure_pa"]/1000,
+                parameters["air_mass_flow_kg_s"], targets['station:2:total_temperature_k']-273.15+3+jitter,
                 targets['station:2:total_pressure_pa']/1000-1+jitter*.1,
                 targets['station:4:total_temperature_k']-273.15+8+jitter,
                 targets['metric:fuel_mass_flow_kg_s']*3600+.2+jitter*.03,
